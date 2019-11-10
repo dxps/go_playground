@@ -1,0 +1,9 @@
+
+## IDE related artifacts
+.vscode
+.idea
+*.iml
+
+## the result of "go build"
+webservice
+
