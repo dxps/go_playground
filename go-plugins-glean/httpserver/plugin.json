@@ -1,0 +1,8 @@
+[
+    {
+        "id": "FooHandlerID",
+        "file": "plugins/plugin1/plugin1.so",
+        "name": "FooHandler",
+        "version": "1.0"
+    }
+]
