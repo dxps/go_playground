@@ -1,9 +1,9 @@
 package main
 
 import (
+	"../../pkg/models/mysql"
 	"database/sql"
 	"flag"
-	"github.com/vision8tech/snippetbox/pkg/models/mysql"
 	"html/template"
 	"log"
 	"net/http"

@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/vision8tech/snippetbox/pkg/models"
+	"../../pkg/models"
 	"net/http"
 	"strconv"
 )

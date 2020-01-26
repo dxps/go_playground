@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/vision8tech/snippetbox/pkg/models"
+	"../../pkg/models"
 	"html/template"
 	"path/filepath"
 	"time"

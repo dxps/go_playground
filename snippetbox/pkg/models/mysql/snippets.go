@@ -2,7 +2,7 @@ package mysql
 
 import (
 	"database/sql"
-	"github.com/vision8tech/snippetbox/pkg/models"
+	"../models"
 )
 
 type SnippetsStore struct {
