@@ -1,0 +1,13 @@
+version: "3.6"
+services:
+  webapp:
+    build: ./webapp
+    ports:
+      - 3000:3000
+    volumes:
+      - type: bind
+        source: ./webapp
+        target: /app
+    environment:
+      - STATIC_ROOT=../static
+    command: ["go", "run", "."]
