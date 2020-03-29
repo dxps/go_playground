@@ -1,16 +1,20 @@
 package api
 
 import (
+	"encoding/json"
 	"net/http"
 	"time"
+
+	"devisions.org/go-playground/go-std-ex-mirrorfinder/mirrors"
 )
 
+// Response is what gets returned to the client as JSON.
 type Response struct {
 	FastestURL string        `json:"fastest_url"`
 	Latency    time.Duration `json:"latency"`
 }
 
-func FindFastest(urls []string) Response {
+func findFastest(urls []string) Response {
 	urlChan := make(chan string)
 	latencyChan := make(chan time.Duration)
 
@@ -27,4 +31,12 @@ func FindFastest(urls []string) Response {
 		}()
 	}
 	return Response{<-urlChan, <-latencyChan}
+}
+
+// FastestMirrorHandler is the request handler for /fastest-mirror.
+func FastestMirrorHandler(w http.ResponseWriter, r *http.Request) {
+	response := findFastest(mirrors.MirrorList)
+	respJSON, _ := json.Marshal(response)
+	w.Header().Set("Content-Type", "application/json")
+	_, _ = w.Write(respJSON)
 }
