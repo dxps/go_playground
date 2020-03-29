@@ -4,7 +4,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -22,6 +21,8 @@ func main() {
 		WriteTimeout:   10 * time.Second,
 		MaxHeaderBytes: 1 << 20,
 	}
-	fmt.Printf(">>> Starting listening on port %s\n", port)
+	log.Printf(">>> Starting listening on port %s\n", port)
+	// Start the server and log as fatal a possible error
+	// that may be returned due to an unsuccessful launch.
 	log.Fatal(server.ListenAndServe())
 }
