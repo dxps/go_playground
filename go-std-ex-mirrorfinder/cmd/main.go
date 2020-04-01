@@ -14,7 +14,7 @@ import (
 func main() {
 
 	http.HandleFunc("/fastest-mirror", api.FastestMirrorHandler)
-	port := ":8000"
+	port := ":8001"
 	server := &http.Server{
 		Addr:           port,
 		ReadTimeout:    10 * time.Second,
