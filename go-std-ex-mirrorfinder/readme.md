@@ -2,9 +2,15 @@
 
 An example of using Go standard libs for creating a Web API.
 
+### Run
+
+Use `go run cmd/main.go` if you want to run it from the shell. <br/>
+Otherwise, you can use your IDE of choice.
+
 ### Usage
 
 A simple cUrl is enough: `curl -i http://localhost:8000/fastest-mirror`.
+
 You may enhance the output using jq: `curl http://localhost:8000/fastest-mirror | jq`
 
 Examples:
