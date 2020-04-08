@@ -4,22 +4,23 @@ import (
 	"fmt"
 	"net/http"
 
+	"devisions.org/goallery/controllers"
 	"devisions.org/goallery/views"
 	"github.com/gorilla/mux"
 )
 
-var homeView, contactView, signUp *views.View
+var homeView, contactView *views.View
 
 func main() {
 
 	homeView = views.NewView("bootstrap", "views/home.gohtml")
 	contactView = views.NewView("bootstrap", "views/contact.gohtml")
-	signUp = views.NewView("bootstrap", "views/signup.gohtml")
+	usersCtrl := controllers.NewUsers()
 
 	r := mux.NewRouter()
 	r.HandleFunc("/", homeHandler)
 	r.HandleFunc("/contact", contactHandler)
-	r.HandleFunc("/signup", signupHandler)
+	r.HandleFunc("/signup", usersCtrl.New)
 	r.NotFoundHandler = http.HandlerFunc(notFoundHandler)
 	_ = http.ListenAndServe(":3000", r)
 }
@@ -32,10 +33,6 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 func contactHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	must(contactView.Render(w, nil))
-}
-
-func signupHandler(w http.ResponseWriter, r *http.Request) {
-	must(signUp.Render(w, nil))
 }
 
 func notFoundHandler(w http.ResponseWriter, r *http.Request) {
