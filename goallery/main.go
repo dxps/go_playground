@@ -5,36 +5,25 @@ import (
 	"net/http"
 
 	"devisions.org/goallery/controllers"
-	"devisions.org/goallery/views"
 	"github.com/gorilla/mux"
 )
 
-var homeView, contactView *views.View
-
 func main() {
 
-	homeView = views.NewView("bootstrap", "views/home.gohtml")
-	contactView = views.NewView("bootstrap", "views/contact.gohtml")
+	staticCtrl := controllers.NewStatic()
 	usersCtrl := controllers.NewUsers()
 
 	r := mux.NewRouter()
-	r.HandleFunc("/", homeHandler).Methods(http.MethodGet)
-	r.HandleFunc("/contact", contactHandler).Methods(http.MethodGet)
+
+	r.Handle("/", staticCtrl.HomeView).Methods(http.MethodGet)
+	r.Handle("/contact", staticCtrl.ContactView).Methods(http.MethodGet)
+
 	r.HandleFunc("/signup", usersCtrl.New).Methods(http.MethodGet)
 	r.HandleFunc("/signup", usersCtrl.Create).Methods(http.MethodPost)
 
 	r.NotFoundHandler = http.HandlerFunc(notFoundHandler)
+
 	_ = http.ListenAndServe(":3000", r)
-}
-
-func homeHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html")
-	must(homeView.Render(w, nil))
-}
-
-func contactHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html")
-	must(contactView.Render(w, nil))
 }
 
 func notFoundHandler(w http.ResponseWriter, r *http.Request) {

@@ -35,7 +35,7 @@ func (u *Users) New(w http.ResponseWriter, r *http.Request) {
 // Create is used for processing the signup form submit request.
 func (u *Users) Create(w http.ResponseWriter, r *http.Request) {
 
-	form := SignupForm{}
+	var form SignupForm
 	if err := parseForm(r, &form); err != nil {
 		panic(err)
 	}

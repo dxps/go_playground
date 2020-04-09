@@ -11,15 +11,10 @@ var (
 	TemplateExt string = ".gohtml"
 )
 
-// layoutFiles collects all the files found in the LayoutDir
-// that matches the TemplateExt extension.
-func layoutFiles() []string {
-
-	files, err := filepath.Glob(LayoutDir + "*" + TemplateExt)
-	if err != nil {
-		panic(err)
-	}
-	return files
+// View represents is returned as response to be presented in the browser.
+type View struct {
+	Template *template.Template
+	Layout   string
 }
 
 // NewView creates a view based on the provided templates.
@@ -38,12 +33,24 @@ func NewView(layout string, files ...string) *View {
 }
 
 func (v *View) Render(w http.ResponseWriter, data interface{}) error {
-
+	w.Header().Set("Content-Type", "text/html")
 	return v.Template.ExecuteTemplate(w, v.Layout, data)
 }
 
-// View represents is returned as response to be presented in the browser.
-type View struct {
-	Template *template.Template
-	Layout   string
+// ServeHTTP method is used for implementing the http.Handler interface.
+func (v *View) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if err := v.Render(w, nil); err != nil {
+		panic(err)
+	}
+}
+
+// layoutFiles collects all the files found in the LayoutDir
+// that matches the TemplateExt extension.
+func layoutFiles() []string {
+
+	files, err := filepath.Glob(LayoutDir + "*" + TemplateExt)
+	if err != nil {
+		panic(err)
+	}
+	return files
 }
