@@ -10,7 +10,7 @@ type Static struct {
 
 func NewStatic() *Static {
 	return &Static{
-		HomeView:    views.NewView("boostrap", "views/static/home.gohtml"),
-		ContactView: views.NewView("boostrap", "views/static/contact.gohtml"),
+		HomeView:    views.NewView("boostrap", "static/home"),
+		ContactView: views.NewView("boostrap", "static/contact"),
 	}
 }

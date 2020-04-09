@@ -8,6 +8,7 @@ import (
 
 var (
 	LayoutDir   string = "views/layouts/"
+	TemplateDir string = "views/"
 	TemplateExt string = ".gohtml"
 )
 
@@ -21,6 +22,7 @@ type View struct {
 // It also appends the common template files.
 func NewView(layout string, files ...string) *View {
 
+	addTemplatePath(files)
 	files = append(files, layoutFiles()...)
 	t, err := template.ParseFiles(files...)
 	if err != nil {
@@ -53,4 +55,12 @@ func layoutFiles() []string {
 		panic(err)
 	}
 	return files
+}
+
+// buildTemplatePath constructs the path of the views provided as slice of strings
+// by adding the TemplateDir as prefix and TemplateExt as suffix.
+func addTemplatePath(files []string) {
+	for i, f := range files {
+		files[i] = TemplateDir + f + TemplateExt
+	}
 }
