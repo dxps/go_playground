@@ -1,5 +1,14 @@
 ## Goal oriented gallery
 
+### Prereqs
+
+PostgreSQL is being used as a database backend.
+
+You can use either your own instance or start a Docker container image using `docker-compose up -d`.
+
+Manual entry:
+`INSERT INTO users (age, email, first_name, last_name) VALUES (30, 'joe@email.com', 'Joe', 'Black');`
+
 ### Run in dev mode
 
 To "reload" the application when changes are detected, [air](https://github.com/cosmtrek/air) tool is used. 

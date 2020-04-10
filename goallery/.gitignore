@@ -2,3 +2,5 @@
 ## the air's working dir
 .tmp
 
+## PostgreSQL's container data
+.pgdata
