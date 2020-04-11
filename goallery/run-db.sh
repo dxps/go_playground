@@ -10,7 +10,7 @@ docker ps --format 'table {{.ID}}\t{{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports
 echo 
 echo 
 
-sleep 2
+sleep 5
 
 docker logs goallery_db
 

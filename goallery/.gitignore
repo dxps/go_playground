@@ -1,6 +1,9 @@
 
 ## the air's working dir
-.tmp
+.air
 
 ## PostgreSQL's container data
 .pgdata
+
+## Experimental space
+exp
