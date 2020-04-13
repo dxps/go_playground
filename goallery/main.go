@@ -1,6 +1,7 @@
 package main
 
 import (
+	"devisions.org/goallery/models"
 	"fmt"
 	"net/http"
 
@@ -8,10 +9,33 @@ import (
 	"github.com/gorilla/mux"
 )
 
+const (
+	host     = "localhost"
+	port     = 54321
+	user     = "goallery"
+	password = "goallery"
+	dbname   = "goallery"
+)
+
 func main() {
 
+	// Database Init
+	dbConnInfo := fmt.Sprintf("host=%s port=%d user=%s "+
+		"password=%s dbname=%s sslmode=disable",
+		host, port, user, password, dbname)
+
+	userRepo, err := models.NewUserRepo(dbConnInfo)
+	if err != nil {
+		panic(err)
+	}
+	defer userRepo.Close()
+
+	if err := userRepo.AutoMigrate(); err != nil {
+		panic(">>> main > Failed at database migration! Details: " + err.Error())
+	}
+
 	staticCtrl := controllers.NewStatic()
-	usersCtrl := controllers.NewUsers()
+	usersCtrl := controllers.NewUsers(userRepo)
 
 	r := mux.NewRouter()
 

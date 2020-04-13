@@ -25,7 +25,7 @@ func main() {
 		panic(err)
 	}
 	defer ur.Close()
-	ur.DestructiveReset()
+	_ = ur.DestructiveReset()
 
 	user := models.User{
 		Name:  "Joe Black",

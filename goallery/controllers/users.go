@@ -1,7 +1,9 @@
 package controllers
 
 import (
+	"devisions.org/goallery/models"
 	"fmt"
+	"log"
 	"net/http"
 
 	"devisions.org/goallery/views"
@@ -9,17 +11,20 @@ import (
 
 type Users struct {
 	NewView *views.View
+	repo    *models.UserRepo
 }
 
 // NewUsers creates the view for "new user" use case.
-func NewUsers() *Users {
+func NewUsers(repo *models.UserRepo) *Users {
 	return &Users{
 		NewView: views.NewView("bootstrap", "users/new"),
+		repo:    repo,
 	}
 }
 
 // SignupForm is used for processing the signup request.
 type SignupForm struct {
+	Name     string `schema:"name"`
 	Email    string `schema:"email"`
 	Password string `schema:"password"`
 }
@@ -37,10 +42,18 @@ func (u *Users) Create(w http.ResponseWriter, r *http.Request) {
 
 	var form SignupForm
 	if err := parseForm(r, &form); err != nil {
-		panic(err)
+		panic(">>> Error parsing user create submit request body: " + err.Error())
 	}
 
-	_, _ = fmt.Fprintln(w, "email: ", form.Email)
-	_, _ = fmt.Fprintln(w, "password: ", form.Password)
+	user := models.User{
+		Name:  form.Name,
+		Email: form.Email,
+	}
+	if err := u.repo.Add(&user); err != nil {
+		log.Printf(">>> Error trying to add user into repo: %s", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
+	_, _ = fmt.Fprintln(w, "User is", user)
 }

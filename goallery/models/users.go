@@ -82,12 +82,20 @@ func (ur *UserRepo) Delete(id uint) error {
 	return ur.db.Delete(&user).Error
 }
 
+// AutoMigrate attempts to automatically migrate the users table.
+func (ur *UserRepo) AutoMigrate() error {
+
+	return ur.db.AutoMigrate(&User{}).Error
+}
+
 // DestructiveReset drops the user table and recreates it.
 // Needed for development purposes only.
-func (ur *UserRepo) DestructiveReset() {
+func (ur *UserRepo) DestructiveReset() error {
 
-	ur.db.DropTableIfExists(&User{})
-	ur.db.AutoMigrate(&User{})
+	if err := ur.db.DropTableIfExists(&User{}).Error; err != nil {
+		return err
+	}
+	return ur.AutoMigrate()
 }
 
 // first will query using the provided gorm.DB to get the first item returned
