@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var (
@@ -11,12 +12,18 @@ var (
 	ErrNotFound = errors.New("models: resource not found")
 	// ErrInvalidID is returned when an invalid ID (like 0) is provided to a method like Delete.
 	ErrInvalidID = errors.New("models: provided ID is invalid")
+	// ErrInvalidPwd is returned when invalid password is provided at user login.
+	ErrInvalidPwd = errors.New("models: provided password is invalid")
+
+	userPwdPepper = "some-secret-random-string"
 )
 
 type User struct {
 	gorm.Model
-	Name  string
-	Email string `gorm:"not null;unique_index"`
+	Name         string
+	Email        string `gorm:"not null;unique_index"`
+	Password     string `gorm:"-"` // gorm will ignore this field
+	PasswordHash string `gorm:"not null"`
 }
 
 type UserRepo struct {
@@ -40,7 +47,36 @@ func (ur *UserRepo) Close() error {
 
 // Add method inserts a new user into the repository.
 func (ur *UserRepo) Add(user *User) error {
+
+	pwdBytes := []byte(user.Password + userPwdPepper)
+	hashedBytes, err := bcrypt.GenerateFromPassword(
+		pwdBytes, bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	user.PasswordHash = string(hashedBytes)
+	user.Password = ""
 	return ur.db.Create(user).Error
+}
+
+// Authenticate is used for authenticating the provided user credentials.
+func (ur *UserRepo) Authenticate(email, password string) (*User, error) {
+
+	foundUser, err := ur.GetByEmail(email)
+	if err != nil {
+		return nil, err
+	}
+	err = bcrypt.CompareHashAndPassword(
+		[]byte(foundUser.PasswordHash),
+		[]byte(password+userPwdPepper))
+	switch err {
+	case nil:
+		return foundUser, nil
+	case bcrypt.ErrMismatchedHashAndPassword:
+		return nil, ErrInvalidPwd
+	default:
+		return nil, err
+	}
 }
 
 // GetByID looks up a user with the provided ID.

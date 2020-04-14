@@ -45,6 +45,9 @@ func main() {
 	r.HandleFunc("/signup", usersCtrl.New).Methods(http.MethodGet)
 	r.HandleFunc("/signup", usersCtrl.Create).Methods(http.MethodPost)
 
+	r.Handle("/login", usersCtrl.LoginView).Methods(http.MethodGet)
+	r.HandleFunc("/login", usersCtrl.Login).Methods(http.MethodPost)
+
 	r.NotFoundHandler = http.HandlerFunc(notFoundHandler)
 
 	_ = http.ListenAndServe(":3000", r)
