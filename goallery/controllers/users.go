@@ -1,10 +1,12 @@
 package controllers
 
 import (
-	"devisions.org/goallery/models"
+	"devisions.org/goallery/rand"
 	"fmt"
 	"log"
 	"net/http"
+
+	"devisions.org/goallery/models"
 
 	"devisions.org/goallery/views"
 )
@@ -62,8 +64,13 @@ func (u *Users) Create(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	_, _ = fmt.Fprintln(w, "User is", user)
+	err := u.signIn(w, &user)
+	if err != nil {
+		// temporary render the error message for debugging
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(w, r, "/cookietest", http.StatusFound)
 }
 
 // Login is used for processing the user login request.
@@ -74,14 +81,57 @@ func (u *Users) Login(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 	user, err := u.repo.Authenticate(form.Email, form.Password)
-	switch err {
-	case models.ErrNotFound:
-		_, _ = fmt.Fprintln(w, "Invalid email address")
-	case models.ErrInvalidPwd:
-		_, _ = fmt.Fprintln(w, "Invalid password provided")
-	case nil:
-		_, _ = fmt.Fprintln(w, user)
-	default:
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	if err != nil {
+		switch err {
+		case models.ErrNotFound:
+			_, _ = fmt.Fprintln(w, "Invalid email address")
+		case models.ErrInvalidPwd:
+			_, _ = fmt.Fprintln(w, "Invalid password provided")
+		default:
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 	}
+	err = u.signIn(w, user)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(w, r, "/cookietest", http.StatusFound)
+}
+
+// signIn is used for signing the given user in via the remember cookie.
+func (u *Users) signIn(w http.ResponseWriter, user *models.User) error {
+
+	if user.Remember == "" {
+		token, err := rand.RememberToken()
+		if err != nil {
+			return err
+		}
+		user.Remember = token
+		err = u.repo.Update(user)
+		if err != nil {
+			return err
+		}
+	}
+	cookie := http.Cookie{
+		Name: "remember", Value: user.Remember,
+	}
+	http.SetCookie(w, &cookie)
+	return nil
+}
+
+// CookieTest is just a temporary test.
+func (u *Users) CookieTest(w http.ResponseWriter, r *http.Request) {
+
+	cookie, err := r.Cookie("remember")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	user, err := u.repo.GetByRemember(cookie.Value)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	_, _ = fmt.Fprintln(w, user)
 }

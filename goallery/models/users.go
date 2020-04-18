@@ -1,6 +1,8 @@
 package models
 
 import (
+	"devisions.org/goallery/hash"
+	"devisions.org/goallery/rand"
 	"errors"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
@@ -24,11 +26,16 @@ type User struct {
 	Email        string `gorm:"not null;unique_index"`
 	Password     string `gorm:"-"` // gorm will ignore this field
 	PasswordHash string `gorm:"not null"`
+	Remember     string `gorm:"-"`
+	RememberHash string `gorm:"not null;unique_index"`
 }
 
 type UserRepo struct {
-	db *gorm.DB
+	db   *gorm.DB
+	hmac hash.HMAC
 }
+
+const hmacSecretKey = "secret-hmac-key"
 
 func NewUserRepo(connectionInfo string) (*UserRepo, error) {
 
@@ -37,7 +44,8 @@ func NewUserRepo(connectionInfo string) (*UserRepo, error) {
 		return nil, err
 	}
 	db.LogMode(true)
-	return &UserRepo{db: db}, nil
+	hmac := hash.NewHMAC(hmacSecretKey)
+	return &UserRepo{db: db, hmac: hmac}, nil
 }
 
 // Close method closes the database connection.
@@ -56,6 +64,15 @@ func (ur *UserRepo) Add(user *User) error {
 	}
 	user.PasswordHash = string(hashedBytes)
 	user.Password = ""
+
+	if user.Remember == "" {
+		token, err := rand.RememberToken()
+		if err != nil {
+			return err
+		}
+		user.Remember = token
+	}
+	user.RememberHash = ur.hmac.Hash(user.Remember)
 	return ur.db.Create(user).Error
 }
 
@@ -103,14 +120,33 @@ func (ur *UserRepo) GetByEmail(email string) (*User, error) {
 	return &user, err
 }
 
+// GetByRememberHash looks up a user with the given remember token.
+// If not found, returned user is nil, and error is ErrNotFound.
+// If any other error, it will be returned and also returned user is nil.
+func (ur *UserRepo) GetByRemember(token string) (*User, error) {
+
+	var user User
+	rememberHash := ur.hmac.Hash(token)
+	err := first(ur.db.Where("remember_hash = ?", rememberHash), &user)
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
 // Update will updates the existing record of the provided user.
 func (ur *UserRepo) Update(user *User) error {
+
+	if user.Remember != "" {
+		user.RememberHash = ur.hmac.Hash(user.Remember)
+	}
 	return ur.db.Save(user).Error
 }
 
 // Delete will delete the user record with the provided ID.
 // It may return ErrInvalidID if provided ID is 0, just to prevent an accidentally deletion of all users.
 func (ur *UserRepo) Delete(id uint) error {
+
 	if id == 0 {
 		return ErrInvalidID
 	}
@@ -137,6 +173,7 @@ func (ur *UserRepo) DestructiveReset() error {
 // first will query using the provided gorm.DB to get the first item returned
 // and place it into dst. If nothing found, ErrNotFound will be returned.
 func first(db *gorm.DB, dst interface{}) error {
+
 	err := db.First(dst).Error
 	if err == gorm.ErrRecordNotFound {
 		return ErrNotFound

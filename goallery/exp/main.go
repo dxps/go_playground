@@ -1,8 +1,10 @@
 package main
 
 import (
-	"devisions.org/goallery/models"
+	"devisions.org/goallery/rand"
 	"fmt"
+
+	"devisions.org/goallery/models"
 	_ "github.com/lib/pq"
 )
 
@@ -54,5 +56,9 @@ func main() {
 	if err := ur.Delete(user.ID); err != nil {
 		panic(">>> Error deleting user: " + err.Error())
 	}
+
+	// Testing of remember token value generator.
+	remToken, _ := rand.RememberToken()
+	fmt.Printf(">>> Remember Token value: %+v\n", remToken)
 
 }
