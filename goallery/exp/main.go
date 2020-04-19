@@ -1,10 +1,10 @@
 package main
 
 import (
-	"devisions.org/goallery/commons/rand"
+	"devisions.org/goallery/users"
+	"devisions.org/goallery/utils/rand"
 	"fmt"
 
-	"devisions.org/goallery/models"
 	_ "github.com/lib/pq"
 )
 
@@ -22,25 +22,27 @@ func main() {
 		"password=%s dbname=%s sslmode=disable",
 		host, port, user, password, dbname)
 
-	ur, err := models.NewUserRepo(dbConnInfo)
+	userSvc, err := users.NewUserService(dbConnInfo)
 	if err != nil {
 		panic(err)
 	}
-	defer ur.Close()
-	_ = ur.DestructiveReset()
+	defer userSvc.Close()
 
-	user := models.User{
+	// Dangerous!!! Watch out!!!
+	//_ = userSvc.DestructiveReset()
+
+	user := users.User{
 		Name:  "Joe Black",
 		Email: "joe@black.com",
 	}
 
 	// Addition test
-	if err := ur.Add(&user); err != nil {
+	if err := userSvc.Create(&user); err != nil {
 		panic(err)
 	}
 
 	// GetByEmail test
-	foundUser, err := ur.GetByEmail("joe@black.com")
+	foundUser, err := userSvc.GetByEmail("joe@black.com")
 	if err != nil {
 		panic(err)
 	}
@@ -48,12 +50,12 @@ func main() {
 
 	// Update test
 	user.Name = "Joe Black Updated"
-	if err := ur.Update(&user); err != nil {
+	if err := userSvc.Update(&user); err != nil {
 		panic(err)
 	}
 
 	// Delete test
-	if err := ur.Delete(user.ID); err != nil {
+	if err := userSvc.Delete(user.ID); err != nil {
 		panic(">>> Error deleting user: " + err.Error())
 	}
 
