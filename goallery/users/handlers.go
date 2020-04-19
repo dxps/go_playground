@@ -1,8 +1,8 @@
 package users
 
 import (
-	"devisions.org/goallery/commons/controllers"
-	"devisions.org/goallery/commons/rand"
+	"devisions.org/goallery/utils/controllers"
+	"devisions.org/goallery/utils/rand"
 	"fmt"
 	"log"
 	"net/http"
@@ -89,6 +89,7 @@ func (u *UserHandlers) Login(w http.ResponseWriter, r *http.Request) {
 		default:
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
+		return
 	}
 	err = u.signIn(w, user)
 	if err != nil {
