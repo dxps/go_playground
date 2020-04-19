@@ -1,8 +1,8 @@
 package main
 
 import (
-	"devisions.org/goallery/commons/controllers"
 	"devisions.org/goallery/users"
+	"devisions.org/goallery/utils/controllers"
 	"fmt"
 	"net/http"
 

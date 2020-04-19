@@ -1,8 +1,8 @@
 package users
 
 import (
-	"devisions.org/goallery/commons/rand"
-	"devisions.org/goallery/hash"
+	"devisions.org/goallery/utils/hash"
+	"devisions.org/goallery/utils/rand"
 	"errors"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
