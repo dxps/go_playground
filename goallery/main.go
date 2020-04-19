@@ -1,11 +1,11 @@
 package main
 
 import (
-	"devisions.org/goallery/models"
+	"devisions.org/goallery/commons/controllers"
+	"devisions.org/goallery/users"
 	"fmt"
 	"net/http"
 
-	"devisions.org/goallery/controllers"
 	"github.com/gorilla/mux"
 )
 
@@ -24,18 +24,18 @@ func main() {
 		"password=%s dbname=%s sslmode=disable",
 		host, port, user, password, dbname)
 
-	userRepo, err := models.NewUserRepo(dbConnInfo)
+	userSvc, err := users.NewUserService(dbConnInfo)
 	if err != nil {
 		panic(err)
 	}
-	defer userRepo.Close()
+	defer userSvc.Close()
 
-	if err := userRepo.AutoMigrate(); err != nil {
+	if err := userSvc.AutoMigrate(); err != nil {
 		panic(">>> main > Failed at database migration! Details: " + err.Error())
 	}
 
 	staticCtrl := controllers.NewStatic()
-	usersCtrl := controllers.NewUsers(userRepo)
+	usersCtrl := users.NewUserHandlers(userSvc)
 
 	r := mux.NewRouter()
 

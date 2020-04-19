@@ -1,8 +1,8 @@
-package models
+package users
 
 import (
+	"devisions.org/goallery/commons/rand"
 	"devisions.org/goallery/hash"
-	"devisions.org/goallery/rand"
 	"errors"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
@@ -20,24 +20,39 @@ var (
 	userPwdPepper = "some-secret-random-string"
 )
 
-type User struct {
-	gorm.Model
-	Name         string
-	Email        string `gorm:"not null;unique_index"`
-	Password     string `gorm:"-"` // gorm will ignore this field
-	PasswordHash string `gorm:"not null"`
-	Remember     string `gorm:"-"`
-	RememberHash string `gorm:"not null;unique_index"`
+// UserStore is used for interacting with a user store.
+// For all `Get_` methods, it either returns the user that is found and a nil error,
+// or an error that is either defined by the `models` package (such as `ErrNotFound`)
+// or another, more low level error.
+// This is a contract (interface) used by outside package components.
+type UserStore interface {
+	GetByID(int uint) (*User, error)
+	GetByEmail(email string) (*User, error)
+	GetByRemember(token string) (*User, error)
+
+	Create(user *User) error
+	Update(user *User) error
+	Delete(id uint) error
+
+	// Close is used for closing the connection(s) to the store (database).
+	Close()
+
+	// AutoMigrate is a helper method used for database migration
+	AutoMigrate() error
+	// DestructiveReset is a helper method used only for dev purposes.
+	DestructiveReset() error
 }
 
-type UserRepo struct {
+// This is an implementation of `UserStore` interface.
+type userStoreGorm struct {
 	db   *gorm.DB
 	hmac hash.HMAC
 }
 
 const hmacSecretKey = "secret-hmac-key"
 
-func NewUserRepo(connectionInfo string) (*UserRepo, error) {
+// Internal constructor of a userStoreGorm instance.
+func newUserStoreGorm(connectionInfo string) (*userStoreGorm, error) {
 
 	db, err := gorm.Open("postgres", connectionInfo)
 	if err != nil {
@@ -45,16 +60,16 @@ func NewUserRepo(connectionInfo string) (*UserRepo, error) {
 	}
 	db.LogMode(true)
 	hmac := hash.NewHMAC(hmacSecretKey)
-	return &UserRepo{db: db, hmac: hmac}, nil
+	return &userStoreGorm{db: db, hmac: hmac}, nil
 }
 
 // Close method closes the database connection.
-func (ur *UserRepo) Close() error {
-	return ur.db.Close()
+func (ur *userStoreGorm) Close() {
+	_ = ur.db.Close()
 }
 
-// Add method inserts a new user into the repository.
-func (ur *UserRepo) Add(user *User) error {
+// Create method inserts a new user into the repository.
+func (ur *userStoreGorm) Create(user *User) error {
 
 	pwdBytes := []byte(user.Password + userPwdPepper)
 	hashedBytes, err := bcrypt.GenerateFromPassword(
@@ -76,30 +91,10 @@ func (ur *UserRepo) Add(user *User) error {
 	return ur.db.Create(user).Error
 }
 
-// Authenticate is used for authenticating the provided user credentials.
-func (ur *UserRepo) Authenticate(email, password string) (*User, error) {
-
-	foundUser, err := ur.GetByEmail(email)
-	if err != nil {
-		return nil, err
-	}
-	err = bcrypt.CompareHashAndPassword(
-		[]byte(foundUser.PasswordHash),
-		[]byte(password+userPwdPepper))
-	switch err {
-	case nil:
-		return foundUser, nil
-	case bcrypt.ErrMismatchedHashAndPassword:
-		return nil, ErrInvalidPwd
-	default:
-		return nil, err
-	}
-}
-
 // GetByID looks up a user with the provided ID.
 // If the user is found, the error will be nil, otherwise an ErrNotFound will be returned.
 // In case of any other issue, details are included in the returned error.
-func (ur *UserRepo) GetByID(id uint) (*User, error) {
+func (ur *userStoreGorm) GetByID(id uint) (*User, error) {
 
 	var user User
 	db := ur.db.Where("id = ?", id)
@@ -112,7 +107,7 @@ func (ur *UserRepo) GetByID(id uint) (*User, error) {
 // GetByEmail looks up a user with the given email address and returns that user, plus a nil error.
 // If not found, returned user is nil, and error is ErrNotFound.
 // If any other error, it will be returned and also returned user is nil.
-func (ur *UserRepo) GetByEmail(email string) (*User, error) {
+func (ur *userStoreGorm) GetByEmail(email string) (*User, error) {
 
 	var user User
 	db := ur.db.Where("email = ?", email)
@@ -123,7 +118,7 @@ func (ur *UserRepo) GetByEmail(email string) (*User, error) {
 // GetByRememberHash looks up a user with the given remember token.
 // If not found, returned user is nil, and error is ErrNotFound.
 // If any other error, it will be returned and also returned user is nil.
-func (ur *UserRepo) GetByRemember(token string) (*User, error) {
+func (ur *userStoreGorm) GetByRemember(token string) (*User, error) {
 
 	var user User
 	rememberHash := ur.hmac.Hash(token)
@@ -135,7 +130,7 @@ func (ur *UserRepo) GetByRemember(token string) (*User, error) {
 }
 
 // Update will updates the existing record of the provided user.
-func (ur *UserRepo) Update(user *User) error {
+func (ur *userStoreGorm) Update(user *User) error {
 
 	if user.Remember != "" {
 		user.RememberHash = ur.hmac.Hash(user.Remember)
@@ -145,7 +140,7 @@ func (ur *UserRepo) Update(user *User) error {
 
 // Delete will delete the user record with the provided ID.
 // It may return ErrInvalidID if provided ID is 0, just to prevent an accidentally deletion of all users.
-func (ur *UserRepo) Delete(id uint) error {
+func (ur *userStoreGorm) Delete(id uint) error {
 
 	if id == 0 {
 		return ErrInvalidID
@@ -155,14 +150,14 @@ func (ur *UserRepo) Delete(id uint) error {
 }
 
 // AutoMigrate attempts to automatically migrate the users table.
-func (ur *UserRepo) AutoMigrate() error {
+func (ur *userStoreGorm) AutoMigrate() error {
 
 	return ur.db.AutoMigrate(&User{}).Error
 }
 
 // DestructiveReset drops the user table and recreates it.
 // Needed for development purposes only.
-func (ur *UserRepo) DestructiveReset() error {
+func (ur *userStoreGorm) DestructiveReset() error {
 
 	if err := ur.db.DropTableIfExists(&User{}).Error; err != nil {
 		return err

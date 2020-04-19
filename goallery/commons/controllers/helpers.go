@@ -5,11 +5,11 @@ import (
 	"net/http"
 )
 
-// parseForm uses gorilla's schema package to
-// decode a form submital request into a structure.
+// ParseForm uses gorilla's schema package to
+// decode a form submit request into a structure.
 // dst should be a pointer to the destination structure
 // that is populated by this parsing mechanism.
-func parseForm(r *http.Request, dst interface{}) error {
+func ParseForm(r *http.Request, dst interface{}) error {
 
 	// r.ParseForm() needs to be called first to populate r.PostForm
 	// and then the decoder to have values to work with.

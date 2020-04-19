@@ -1,7 +1,7 @@
 package main
 
 import (
-	"devisions.org/goallery/rand"
+	"devisions.org/goallery/commons/rand"
 	"fmt"
 
 	"devisions.org/goallery/models"
