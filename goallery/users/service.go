@@ -86,14 +86,10 @@ func (uv *userValidator) GetByRemember(token string) (*User, error) {
 // This intermediate method of userValidator does any data validation and normalization.
 func (uv *userValidator) Create(user *User) error {
 
-	pwdBytes := []byte(user.Password + userPwdPepper)
-	hashedBytes, err := bcrypt.GenerateFromPassword(pwdBytes, bcrypt.DefaultCost)
-	if err != nil {
+	if err := runUserValFns(user,
+		uv.bcryptPassword); err != nil {
 		return err
 	}
-	user.PasswordHash = string(hashedBytes)
-	user.Password = ""
-
 	if user.Remember == "" {
 		token, err := rand.RememberToken()
 		if err != nil {
@@ -109,6 +105,10 @@ func (uv *userValidator) Create(user *User) error {
 // This intermediate method of userValidator does any data validation and normalization.
 func (uv *userValidator) Update(user *User) error {
 
+	if err := runUserValFns(user,
+		uv.bcryptPassword); err != nil {
+		return err
+	}
 	if user.Remember != "" {
 		user.RememberHash = uv.hmac.Hash(user.Remember)
 	}
@@ -124,4 +124,34 @@ func (uv *userValidator) Delete(id uint) error {
 		return ErrInvalidID
 	}
 	return uv.UserStore.Delete(id)
+}
+
+// bcryptPassword will hash a user's password with an app-wide pepper
+// and brypt's salt.
+func (uv *userValidator) bcryptPassword(user *User) error {
+
+	if user.Password == "" {
+		// Skipping if password hasn't been changed.
+		return nil
+	}
+	pwdBytes := []byte(user.Password + userPwdPepper)
+	hashedBytes, err := bcrypt.GenerateFromPassword(pwdBytes, bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	user.PasswordHash = string(hashedBytes)
+	user.Password = ""
+	return nil
+}
+
+type userValFn func(*User) error
+
+func runUserValFns(user *User, fns ...userValFn) error {
+
+	for _, fn := range fns {
+		if err := fn(user); err != nil {
+			return err
+		}
+	}
+	return nil
 }
