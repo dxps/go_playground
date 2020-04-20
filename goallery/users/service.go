@@ -77,9 +77,13 @@ const hmacSecretKey = "secret-hmac-key"
 // the UserStore's method with the same name.
 func (uv *userValidator) GetByRemember(token string) (*User, error) {
 
-	rememberHash := uv.hmac.Hash(token)
-	fmt.Printf(">>> userValidator > GetByRemember > Normalized token '%v' as hash '%v'.\n", token, rememberHash)
-	return uv.UserStore.GetByRemember(rememberHash)
+	user := User{Remember: token} // working with a user just for rememberHash
+	if err := runUserValFns(&user, uv.hmacRemember); err != nil {
+		return nil, err
+	}
+	fmt.Printf(">>> userValidator > GetByRemember > Normalized token '%v' as hash '%v' before searching.\n",
+		token, user.RememberHash)
+	return uv.UserStore.GetByRemember(user.RememberHash)
 }
 
 // Create method inserts a new user into the store.
@@ -87,17 +91,11 @@ func (uv *userValidator) GetByRemember(token string) (*User, error) {
 func (uv *userValidator) Create(user *User) error {
 
 	if err := runUserValFns(user,
-		uv.bcryptPassword); err != nil {
+		uv.bcryptPassword,
+		uv.setRememberIfUnset,
+		uv.hmacRemember); err != nil {
 		return err
 	}
-	if user.Remember == "" {
-		token, err := rand.RememberToken()
-		if err != nil {
-			return err
-		}
-		user.Remember = token
-	}
-	user.RememberHash = uv.hmac.Hash(user.Remember)
 	return uv.UserStore.Create(user)
 }
 
@@ -106,11 +104,9 @@ func (uv *userValidator) Create(user *User) error {
 func (uv *userValidator) Update(user *User) error {
 
 	if err := runUserValFns(user,
-		uv.bcryptPassword); err != nil {
+		uv.bcryptPassword,
+		uv.hmacRemember); err != nil {
 		return err
-	}
-	if user.Remember != "" {
-		user.RememberHash = uv.hmac.Hash(user.Remember)
 	}
 	return uv.UserStore.Update(user)
 }
@@ -120,8 +116,10 @@ func (uv *userValidator) Update(user *User) error {
 // This intermediate method of userValidator does any data validation and normalization.
 func (uv *userValidator) Delete(id uint) error {
 
-	if id == 0 {
-		return ErrInvalidID
+	var user User
+	user.ID = id
+	if err := runUserValFns(&user, uv.genUserValFnIdGreaterThan(0)); err != nil {
+		return err
 	}
 	return uv.UserStore.Delete(id)
 }
@@ -154,4 +152,36 @@ func runUserValFns(user *User, fns ...userValFn) error {
 		}
 	}
 	return nil
+}
+
+func (uv *userValidator) setRememberIfUnset(user *User) error {
+
+	if user.Remember == "" {
+		token, err := rand.RememberToken()
+		if err != nil {
+			return err
+		}
+		user.Remember = token
+	}
+	return nil
+}
+
+func (uv *userValidator) hmacRemember(user *User) error {
+
+	if user.Remember != "" {
+		user.RememberHash = uv.hmac.Hash(user.Remember)
+	}
+	return nil // needed just to satisfy the signature of userValFn
+}
+
+// Generate a userValFn closure that checks if the user's ID is greater than provided n.
+func (uv *userValidator) genUserValFnIdGreaterThan(n uint) userValFn {
+
+	return userValFn(
+		func(user *User) error {
+			if user.ID <= n {
+				return ErrInvalidID
+			}
+			return nil
+		})
 }
