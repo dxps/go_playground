@@ -112,7 +112,7 @@ func (uv *userValidator) Update(user *User) error {
 	if user.Remember != "" {
 		user.RememberHash = uv.hmac.Hash(user.Remember)
 	}
-	return uv.UserStore.Save(user)
+	return uv.UserStore.Update(user)
 }
 
 // Delete will delete the user record with the provided ID.
