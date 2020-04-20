@@ -1,12 +1,10 @@
 package users
 
 import (
-	"devisions.org/goallery/utils/hash"
-	"devisions.org/goallery/utils/rand"
 	"errors"
+	"fmt"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
-	"golang.org/x/crypto/bcrypt"
 )
 
 var (
@@ -45,11 +43,8 @@ type UserStore interface {
 
 // This is an implementation of `UserStore` interface.
 type userStoreGorm struct {
-	db   *gorm.DB
-	hmac hash.HMAC
+	db *gorm.DB
 }
-
-const hmacSecretKey = "secret-hmac-key"
 
 // Internal constructor of a userStoreGorm instance.
 func newUserStoreGorm(connectionInfo string) (*userStoreGorm, error) {
@@ -59,8 +54,7 @@ func newUserStoreGorm(connectionInfo string) (*userStoreGorm, error) {
 		return nil, err
 	}
 	db.LogMode(true)
-	hmac := hash.NewHMAC(hmacSecretKey)
-	return &userStoreGorm{db: db, hmac: hmac}, nil
+	return &userStoreGorm{db: db}, nil
 }
 
 // Close method closes the database connection.
@@ -71,23 +65,6 @@ func (ur *userStoreGorm) Close() {
 // Create method inserts a new user into the repository.
 func (ur *userStoreGorm) Create(user *User) error {
 
-	pwdBytes := []byte(user.Password + userPwdPepper)
-	hashedBytes, err := bcrypt.GenerateFromPassword(
-		pwdBytes, bcrypt.DefaultCost)
-	if err != nil {
-		return err
-	}
-	user.PasswordHash = string(hashedBytes)
-	user.Password = ""
-
-	if user.Remember == "" {
-		token, err := rand.RememberToken()
-		if err != nil {
-			return err
-		}
-		user.Remember = token
-	}
-	user.RememberHash = ur.hmac.Hash(user.Remember)
 	return ur.db.Create(user).Error
 }
 
@@ -118,10 +95,10 @@ func (ur *userStoreGorm) GetByEmail(email string) (*User, error) {
 // GetByRememberHash looks up a user with the given remember token.
 // If not found, returned user is nil, and error is ErrNotFound.
 // If any other error, it will be returned and also returned user is nil.
-func (ur *userStoreGorm) GetByRemember(token string) (*User, error) {
+func (ur *userStoreGorm) GetByRemember(rememberHash string) (*User, error) {
 
 	var user User
-	rememberHash := ur.hmac.Hash(token)
+	fmt.Printf(">>> userStoreGorm > GetByRemember > Looking for user with rememberHash:'%v'\n", rememberHash)
 	err := first(ur.db.Where("remember_hash = ?", rememberHash), &user)
 	if err != nil {
 		return nil, err
@@ -132,9 +109,6 @@ func (ur *userStoreGorm) GetByRemember(token string) (*User, error) {
 // Update will updates the existing record of the provided user.
 func (ur *userStoreGorm) Update(user *User) error {
 
-	if user.Remember != "" {
-		user.RememberHash = ur.hmac.Hash(user.Remember)
-	}
 	return ur.db.Save(user).Error
 }
 
@@ -142,9 +116,6 @@ func (ur *userStoreGorm) Update(user *User) error {
 // It may return ErrInvalidID if provided ID is 0, just to prevent an accidentally deletion of all users.
 func (ur *userStoreGorm) Delete(id uint) error {
 
-	if id == 0 {
-		return ErrInvalidID
-	}
 	user := User{Model: gorm.Model{ID: id}}
 	return ur.db.Delete(&user).Error
 }
