@@ -21,7 +21,7 @@ func NewStateFromDisk() (*State, error) {
 		return nil, err
 	}
 
-	gen, err := loadGenesis(filepath.Join(cwd, "database", "genesis.json"))
+	gen, err := loadGenesis(filepath.Join(cwd, "store", "genesis.json"))
 	if err != nil {
 		return nil, err
 	}
@@ -31,7 +31,7 @@ func NewStateFromDisk() (*State, error) {
 		balances[account] = balance
 	}
 
-	f, err := os.OpenFile(filepath.Join(cwd, "database", "tx.db"), os.O_APPEND|os.O_RDWR, 0600)
+	f, err := os.OpenFile(filepath.Join(cwd, "store", "txns.db"), os.O_APPEND|os.O_RDWR, 0600)
 	if err != nil {
 		return nil, err
 	}

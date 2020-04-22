@@ -15,7 +15,7 @@ const (
 
 var versionCmd = &cobra.Command{
 	Use:   "version",
-	Short: "It describes the version.",
+	Short: "It shows the version and a short note about it.",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Printf("Version: %s.%s.%s-beta %s\n", major, minor, fix, note)
 	},

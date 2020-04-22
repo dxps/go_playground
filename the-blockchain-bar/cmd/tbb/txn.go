@@ -31,7 +31,7 @@ func txCmd() *cobra.Command {
 func txAddCmd() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "add",
-		Short: "Adds new TX to database.",
+		Short: "Adds new TXN to database.",
 		Run: func(cmd *cobra.Command, args []string) {
 			from, _ := cmd.Flags().GetString(flagFrom)
 			to, _ := cmd.Flags().GetString(flagTo)
