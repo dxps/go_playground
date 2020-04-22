@@ -1,10 +1,11 @@
 package main
 
 import (
-	"devisions.org/goallery/users"
-	"devisions.org/goallery/utils/controllers"
 	"fmt"
 	"net/http"
+
+	"devisions.org/goallery/users"
+	"devisions.org/goallery/utils/controllers"
 
 	"github.com/gorilla/mux"
 )
@@ -25,9 +26,7 @@ func main() {
 		host, port, user, password, dbname)
 
 	userSvc, err := users.NewUserService(dbConnInfo)
-	if err != nil {
-		panic(err)
-	}
+	must(err)
 	defer userSvc.Close()
 
 	if err := userSvc.AutoMigrate(); err != nil {
