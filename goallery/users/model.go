@@ -2,6 +2,7 @@ package users
 
 import "github.com/jinzhu/gorm"
 
+// User is the model of a user.
 type User struct {
 	gorm.Model
 	Name         string

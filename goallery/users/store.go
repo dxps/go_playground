@@ -3,7 +3,10 @@ package users
 import (
 	"errors"
 	"fmt"
+
 	"github.com/jinzhu/gorm"
+
+	// initing the driver
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
@@ -18,7 +21,7 @@ var (
 	userPwdPepper = "some-secret-random-string"
 )
 
-// UserStore is used for interacting with a user store.
+// UserStore is used for interacting with the persistence storage for users.
 // For all `Get_` methods, it either returns the user that is found and a nil error,
 // or an error that is either defined by the `models` package (such as `ErrNotFound`)
 // or another, more low level error.

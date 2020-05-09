@@ -1,22 +1,24 @@
 package users
 
 import (
-	"devisions.org/goallery/utils/controllers"
-	"devisions.org/goallery/utils/rand"
 	"fmt"
 	"log"
 	"net/http"
 
+	"devisions.org/goallery/utils/controllers"
+	"devisions.org/goallery/utils/rand"
+
 	"devisions.org/goallery/views"
 )
 
+// UserHandlers contains the handlers for all user related requests.
 type UserHandlers struct {
 	NewView   *views.View
 	LoginView *views.View
 	svc       UserService
 }
 
-// NewUsers creates the view for "new user" use case.
+// NewUserHandlers creates the view for "new user" use case.
 func NewUserHandlers(svc UserService) *UserHandlers {
 	return &UserHandlers{
 		NewView:   views.NewView("bootstrap", "users/new"),

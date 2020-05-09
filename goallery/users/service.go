@@ -1,9 +1,10 @@
 package users
 
 import (
+	"fmt"
+
 	"devisions.org/goallery/utils/hash"
 	"devisions.org/goallery/utils/rand"
-	"fmt"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -60,7 +61,7 @@ func (us *userService) Authenticate(email, password string) (*User, error) {
 }
 
 // ---------------------------------
-//  Validation Layer
+//       Validation Layer
 // ---------------------------------
 
 // This is a layer that validates and normalizes data before
@@ -118,7 +119,7 @@ func (uv *userValidator) Delete(id uint) error {
 
 	var user User
 	user.ID = id
-	if err := runUserValFns(&user, uv.genUserValFnIdGreaterThan(0)); err != nil {
+	if err := runUserValFns(&user, uv.genUserValFnIDGreaterThan(0)); err != nil {
 		return err
 	}
 	return uv.UserStore.Delete(id)
@@ -175,7 +176,7 @@ func (uv *userValidator) hmacRemember(user *User) error {
 }
 
 // Generate a userValFn closure that checks if the user's ID is greater than provided n.
-func (uv *userValidator) genUserValFnIdGreaterThan(n uint) userValFn {
+func (uv *userValidator) genUserValFnIDGreaterThan(n uint) userValFn {
 
 	return userValFn(
 		func(user *User) error {
