@@ -11,6 +11,15 @@ type Log struct {
 	records []Record
 }
 
+// Record is an entry of a commit log.
+type Record struct {
+	Value  []byte `json:"value"`
+	Offset uint64 `json:"offset"`
+}
+
+// ErrOffsetNotFound is an error returned when the offset is not found.
+var ErrOffsetNotFound = fmt.Errorf("offset not found")
+
 // NewLog creates a new instance of a Log.
 func NewLog() *Log {
 	return &Log{}
@@ -34,12 +43,3 @@ func (l *Log) Read(offset uint64) (Record, error) {
 	}
 	return l.records[offset], nil
 }
-
-// Record is an entry of a commit log.
-type Record struct {
-	Value  []byte `json:"value"`
-	Offset uint64 `json:"offset"`
-}
-
-// ErrOffsetNotFound is an error returned when the offset is not found.
-var ErrOffsetNotFound = fmt.Errorf("offset not found")
