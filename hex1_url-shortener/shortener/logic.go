@@ -10,29 +10,29 @@ import (
 )
 
 var (
-	ErrRedirectNotFound = errors.New("Redirect Not Found")
-	ErrRedirectInvalid  = errors.New("Redirect Invalid")
+	ErrShortUrlNotFound = errors.New("ShortUrl Not Found")
+	ErrShortUrlInvalid  = errors.New("ShortUrl Invalid")
 )
 
-type redirectService struct {
-	redirectRepo RedirectRepository
+type shortUrlService struct {
+	repo ShortUrlRepository
 }
 
-func NewRedirectService(redirectRepo RedirectRepository) RedirectService {
-	return &redirectService{
-		redirectRepo,
+func NewShortUrlService(repo ShortUrlRepository) ShortUrlService {
+	return &shortUrlService{
+		repo,
 	}
 }
 
-func (r *redirectService) Find(code string) (*Redirect, error) {
-	return r.redirectRepo.Find(code)
+func (s *shortUrlService) Find(code string) (*ShortUrl, error) {
+	return s.repo.Find(code)
 }
 
-func (r *redirectService) Store(redirect *Redirect) error {
-	if err := validate.Validate(redirect); err != nil {
-		return errs.Wrap(ErrRedirectInvalid, "service.Redirect.Store")
+func (s *shortUrlService) Store(su *ShortUrl) error {
+	if err := validate.Validate(su); err != nil {
+		return errs.Wrap(ErrShortUrlInvalid, "service.ShortUrl.Store")
 	}
-	redirect.Code = shortid.MustGenerate()
-	redirect.CreatedAt = time.Now().UTC().Unix()
-	return r.redirectRepo.Store(redirect)
+	su.Code = shortid.MustGenerate()
+	su.CreatedAt = time.Now().UTC().Unix()
+	return s.repo.Store(su)
 }

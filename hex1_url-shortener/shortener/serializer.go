@@ -1,6 +1,6 @@
 package shortener
 
-type RedirectSerializer interface {
-	Decode(input []byte) (*Redirect, error)
-	Encode(input *Redirect) ([]byte, error)
+type ShortUrlSerializer interface {
+	Decode(input []byte) (*ShortUrl, error)
+	Encode(input *ShortUrl) ([]byte, error)
 }
