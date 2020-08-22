@@ -24,11 +24,11 @@ Use `DB_TYPE=redis DB_URL=redis://localhost:6379 go run cmd/main.go` to start th
 Currently, it listens for interrupt signals that you can send by 
 doing a `CTRL+C` in the terminal where the server was started.
 
-
-
 ## Usage
 
 See below the two main HTTP calls that can be used.
+
+After each call is processed, you can see in the terminal processing related log entries that include timestamp, source IP, request, and processing time.
 
 ### Adding a new entry
 
