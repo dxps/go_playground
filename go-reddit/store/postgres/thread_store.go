@@ -9,15 +9,9 @@ import (
 )
 
 type ThreadStore struct {
-	// embedding the type (and thus its methods)
 	*sqlx.DB
 }
 
-func NewThreadStore(db *sqlx.DB) *ThreadStore {
-	return &ThreadStore{
-		DB: db,
-	}
-}
 func (s *ThreadStore) GetThread(id uuid.UUID) (goreddit.Thread, error) {
 	var t goreddit.Thread
 	if err := s.Get(&t, `SELECT * FROM threads WHERE id=$1`, id); err != nil {

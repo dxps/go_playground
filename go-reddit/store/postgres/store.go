@@ -3,15 +3,14 @@ package postgres
 import (
 	"fmt"
 
-	goreddit "devisions.org/go-reddit"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
 
 type Store struct {
-	goreddit.ThreadStore
-	goreddit.PostStore
-	goreddit.CommentStore
+	*ThreadStore
+	*PostStore
+	*CommentStore
 }
 
 func NewStore(dataSourceName string) (*Store, error) {
@@ -23,8 +22,8 @@ func NewStore(dataSourceName string) (*Store, error) {
 		return nil, fmt.Errorf("error connecting to database: %w", err)
 	}
 	return &Store{
-		ThreadStore:  NewThreadStore(db),
-		PostStore:    NewPostStore(db),
-		CommentStore: NewCommentStore(db),
+		ThreadStore:  &ThreadStore{DB: db},
+		PostStore:    &PostStore{DB: db},
+		CommentStore: &CommentStore{DB: db},
 	}, nil
 }

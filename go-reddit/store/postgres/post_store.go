@@ -12,12 +12,6 @@ type PostStore struct {
 	*sqlx.DB
 }
 
-func NewPostStore(db *sqlx.DB) *PostStore {
-	return &PostStore{
-		DB: db,
-	}
-}
-
 func (s *PostStore) GetPost(id uuid.UUID) (goreddit.Post, error) {
 	var p goreddit.Post
 	if err := s.Get(&p, `SELECT * FROM posts WHERE id = $1`, id); err != nil {
