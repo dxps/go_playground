@@ -10,7 +10,7 @@ CREATE TABLE posts (
     content TEXT NOT NULL,
     votes INT DEFAULT 0
 );
-CREATE TABLE commentss (
+CREATE TABLE comments (
     id UUID PRIMARY KEY,
     post_id UUID NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
     content TEXT NOT NULL,
