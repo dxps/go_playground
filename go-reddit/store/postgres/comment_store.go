@@ -28,7 +28,7 @@ func (s *CommentStore) GetCommentsByPost(postID uuid.UUID) ([]goreddit.Comment, 
 	return cs, nil
 }
 
-func (s *CommentStore) CreateComment(c *goreddit.Comment) error {
+func (s *CommentStore) SaveComment(c *goreddit.Comment) error {
 	if err := s.Get(&c, `INSERT INTO comments VALUES ($1, $2, $3, $4) RETURNING *`,
 		c.ID, c.PostID, c.Content, c.Votes); err != nil {
 		return fmt.Errorf("error creating comment: %w", err)

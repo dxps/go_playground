@@ -22,13 +22,13 @@ func (s *ThreadStore) GetThread(id uuid.UUID) (goreddit.Thread, error) {
 
 func (s *ThreadStore) GetThreads() ([]goreddit.Thread, error) {
 	var ts []goreddit.Thread
-	if err := s.Get(&ts, `SELECT * FROM threads`); err != nil {
+	if err := s.Select(&ts, `SELECT * FROM threads`); err != nil {
 		return []goreddit.Thread{}, fmt.Errorf("error getting threads: %w", err)
 	}
 	return ts, nil
 }
 
-func (s *ThreadStore) CreateThread(t *goreddit.Thread) error {
+func (s *ThreadStore) SaveThread(t *goreddit.Thread) error {
 	if err := s.Get(t, `INSERT INTO threads VALUES ($1, $2, $3) RETURNING *`,
 		t.ID, t.Title, t.Description); err != nil {
 		return fmt.Errorf("error creating thread: %w", err)
