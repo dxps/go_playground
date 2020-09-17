@@ -1,0 +1,20 @@
+version: "3.5"
+networks:
+  go-reddit-net:
+    name: go-reddit-net
+    driver: bridge
+services:
+  db:
+    image: "postgres:11"
+    container_name: "go-reddit-db"
+    environment:
+      POSTGRES_USER: go-reddit
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: go-reddit
+      PGDATA: /pgdata
+    networks:
+      - go-reddit-net
+    ports:
+      - "54326:5432"
+    volumes:
+      - .pgdata:/pgdata

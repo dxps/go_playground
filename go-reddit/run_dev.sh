@@ -1,3 +1,4 @@
 #!/bin/sh
 
-reflex -s go run cmd/go-reddit.go
+reflex -R '.pgdata/*' -s go run cmd/go-reddit.go
+
