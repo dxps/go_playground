@@ -10,7 +10,7 @@ import (
 
 func main() {
 
-	store, err := postgres.NewStore("postgres://postgres:secret@localhost:54326/postgres?sslmode=disable")
+	store, err := postgres.NewStore("postgres://go-reddit:secret@localhost:54326/go-reddit?sslmode=disable")
 	if err != nil {
 		log.Fatal(err)
 	}
