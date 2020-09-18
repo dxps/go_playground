@@ -31,7 +31,7 @@ func (s *PostStore) GetPostsByThread(threadID uuid.UUID) ([]goreddit.Post, error
 func (s *PostStore) SavePost(p *goreddit.Post) error {
 	if err := s.Get(p, `INSERT INTO posts VALUES ($1, $2, $3, $4, $5) RETURNING *`,
 		p.ID, p.ThreadID, p.Title, p.Content, p.Votes); err != nil {
-		return fmt.Errorf("error creating post: %w", err)
+		return fmt.Errorf("error adding post: %w", err)
 	}
 	return nil
 }

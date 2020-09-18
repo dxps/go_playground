@@ -34,7 +34,9 @@ func NewHandler(store goreddit.Store) *Handler {
 		r.Get("/{id}/new", h.ShowCreatePostHandler())
 		r.Post("/{id}", h.SavePostHandler())
 		r.Get("/{threadID}/{postID}", h.ShowPostsHandler())
+		r.Post("/{threadID}/{postID}", h.SaveCommentHandler())
 	})
+	h.Get("/comments/{id}/vote", h.VoteCommentHandler())
 
 	return h
 }
@@ -179,12 +181,18 @@ func (h *Handler) ShowPostsHandler() http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		cs, err := h.store.GetCommentsByPost(postID)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
 		w.Header().Set("Content-Type", "text/html charset=UTF-8")
 		_ = tmpl.Execute(w, struct {
-			Thread goreddit.Thread
-			Post   goreddit.Post
-		}{t, p})
+			Thread   goreddit.Thread
+			Post     goreddit.Post
+			Comments []goreddit.Comment
+		}{t, p, cs})
 	}
 }
 
@@ -211,5 +219,58 @@ func (h *Handler) SavePostHandler() http.HandlerFunc {
 			return
 		}
 		http.Redirect(w, r, fmt.Sprintf("/threads/%s/%s", tid, p.ID), http.StatusFound)
+	}
+}
+
+func (h *Handler) SaveCommentHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		content := r.FormValue("content")
+		pidStr := chi.URLParam(r, "postID")
+		pid, err := uuid.Parse(pidStr)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		if err := h.store.SaveComment(&goreddit.Comment{
+			ID:      uuid.New(),
+			PostID:  pid,
+			Content: content,
+			Votes:   0,
+		}); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		http.Redirect(w, r, r.Referer(), http.StatusFound)
+	}
+}
+
+func (h *Handler) VoteCommentHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		idStr := chi.URLParam(r, "id")
+		id, err := uuid.Parse(idStr)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		c, err := h.store.GetComment(id)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
+
+		dir := r.URL.Query().Get("dir")
+		if dir == "up" {
+			c.Votes++
+		} else if dir == "down" {
+			c.Votes--
+		}
+
+		if err := h.store.UpdateComment(&c); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		http.Redirect(w, r, r.Referer(), http.StatusFound)
 	}
 }
