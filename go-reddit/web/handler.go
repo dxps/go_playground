@@ -34,6 +34,7 @@ func NewHandler(store goreddit.Store) *Handler {
 		r.Get("/{id}/new", h.ShowCreatePostHandler())
 		r.Post("/{id}", h.SavePostHandler())
 		r.Get("/{threadID}/{postID}", h.ShowPostsHandler())
+		r.Get("/{threadID}/{postID}/vote", h.VotePostHandler())
 		r.Post("/{threadID}/{postID}", h.SaveCommentHandler())
 	})
 	h.Get("/comments/{id}/vote", h.VoteCommentHandler())
@@ -44,8 +45,13 @@ func NewHandler(store goreddit.Store) *Handler {
 func (h *Handler) HomeHandler() http.HandlerFunc {
 	tmpl := template.Must(template.ParseFiles("web/templates/layout.html", "web/templates/home.html"))
 	return func(w http.ResponseWriter, r *http.Request) {
+		ps, err := h.store.GetPosts()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 		w.Header().Set("Content-Type", "text/html charset=UTF-8")
-		_ = tmpl.Execute(w, nil)
+		_ = tmpl.Execute(w, struct{ Posts []goreddit.Post }{ps})
 	}
 }
 
@@ -221,6 +227,41 @@ func (h *Handler) SavePostHandler() http.HandlerFunc {
 		http.Redirect(w, r, fmt.Sprintf("/threads/%s/%s", tid, p.ID), http.StatusFound)
 	}
 }
+
+func (h *Handler) VotePostHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		idStr := chi.URLParam(r, "postID")
+		id, err := uuid.Parse(idStr)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		p, err := h.store.GetPost(id)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
+
+		dir := r.URL.Query().Get("dir")
+		if dir == "up" {
+			p.Votes++
+		} else if dir == "down" {
+			p.Votes--
+		}
+
+		if err := h.store.UpdatePost(&p); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		http.Redirect(w, r, r.Referer(), http.StatusFound)
+	}
+}
+
+// ----------------------------
+//          COMMENTS
+// ----------------------------
 
 func (h *Handler) SaveCommentHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {

@@ -12,20 +12,46 @@ type PostStore struct {
 	*sqlx.DB
 }
 
+func (s *PostStore) GetPosts() ([]goreddit.Post, error) {
+	var ps []goreddit.Post
+	var query = `
+		SELECT posts.*, 
+			   COUNT(comments.*) AS comments_count,
+			   threads.title AS thread_title
+		FROM posts
+		JOIN comments ON comments.post_id = posts.id
+		JOIN threads ON threads.id = posts.thread_id
+		GROUP BY posts.id, threads.title
+		ORDER BY votes DESC
+	`
+	if err := s.Select(&ps, query); err != nil {
+		return []goreddit.Post{}, fmt.Errorf("error getting posts: %w", err)
+	}
+	return ps, nil
+}
+
+func (s *PostStore) GetPostsByThread(threadID uuid.UUID) ([]goreddit.Post, error) {
+	var ps []goreddit.Post
+	var query = `
+		SELECT posts.*, COUNT(comments.*) AS comments_count
+		FROM posts
+		LEFT JOIN comments ON comments.post_id = posts.id
+		WHERE thread_id = $1
+		GROUP BY posts.id
+		ORDER BY votes DESC
+	`
+	if err := s.Select(&ps, query, threadID); err != nil {
+		return []goreddit.Post{}, fmt.Errorf("error getting posts by thread: %w", err)
+	}
+	return ps, nil
+}
+
 func (s *PostStore) GetPost(id uuid.UUID) (goreddit.Post, error) {
 	var p goreddit.Post
 	if err := s.Get(&p, `SELECT * FROM posts WHERE id = $1`, id); err != nil {
 		return goreddit.Post{}, fmt.Errorf("error getting post: %w", err)
 	}
 	return p, nil
-}
-
-func (s *PostStore) GetPostsByThread(threadID uuid.UUID) ([]goreddit.Post, error) {
-	var ps []goreddit.Post
-	if err := s.Select(&ps, `SELECT * FROM posts WHERE thread_id = $1`, threadID); err != nil {
-		return []goreddit.Post{}, fmt.Errorf("error getting posts: %w", err)
-	}
-	return ps, nil
 }
 
 func (s *PostStore) SavePost(p *goreddit.Post) error {
