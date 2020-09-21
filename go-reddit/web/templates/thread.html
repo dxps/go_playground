@@ -20,7 +20,7 @@
       </a>
     </div>
     <div class="card-body">
-      <h5 class="card-title">{{.Title}}</h5>
+      <a href="/threads/{{$.Thread.ID}}/{{.ID}}" class="d-block card-title text-body mt-1 h5"> {{.Title}} </a>
       <p class="card-text">{{.Content}}</p>
       <a href="/threads/{{$.Thread.ID}}/{{.ID}}">{{.CommentsCount}} Comments</a>
     </div>
