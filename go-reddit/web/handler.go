@@ -7,6 +7,7 @@ import (
 	goreddit "devisions.org/go-reddit"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	"github.com/gorilla/csrf"
 )
 
 type Handler struct {
@@ -14,7 +15,8 @@ type Handler struct {
 	store goreddit.Store
 }
 
-func NewHandler(store goreddit.Store) *Handler {
+func NewHandler(store goreddit.Store, csrfKey []byte) *Handler {
+
 	h := &Handler{
 		Mux:   chi.NewMux(),
 		store: store,
@@ -25,6 +27,7 @@ func NewHandler(store goreddit.Store) *Handler {
 	comments := CommentsHandler{store}
 
 	h.Use(middleware.Logger)
+	h.Use(csrf.Protect(csrfKey, csrf.Secure(false), csrf.CookieName("csrf_token"), csrf.FieldName("csrf_token")))
 
 	h.Get("/", h.HomeHandler())
 
@@ -50,6 +53,7 @@ func NewHandler(store goreddit.Store) *Handler {
 }
 
 func (h *Handler) HomeHandler() http.HandlerFunc {
+
 	tmpl := template.Must(template.ParseFiles("web/templates/layout.html", "web/templates/home.html"))
 	return func(w http.ResponseWriter, r *http.Request) {
 		ps, err := h.store.GetPosts()

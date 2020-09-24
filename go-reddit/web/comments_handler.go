@@ -36,6 +36,7 @@ func (h *CommentsHandler) Save() http.HandlerFunc {
 }
 
 func (h *CommentsHandler) Vote() http.HandlerFunc {
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		idStr := chi.URLParam(r, "id")
 		id, err := uuid.Parse(idStr)

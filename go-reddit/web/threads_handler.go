@@ -7,6 +7,7 @@ import (
 	goreddit "devisions.org/go-reddit"
 	"github.com/go-chi/chi"
 	"github.com/google/uuid"
+	"github.com/gorilla/csrf"
 )
 
 type ThreadsHandler struct {
@@ -14,10 +15,7 @@ type ThreadsHandler struct {
 }
 
 func (h *ThreadsHandler) List() http.HandlerFunc {
-	// init
-	type data struct {
-		Threads []goreddit.Thread
-	}
+
 	tmpl := template.Must(template.ParseFiles(
 		"web/templates/layout.html", "web/templates/threads.html"))
 	// handler logic
@@ -28,11 +26,12 @@ func (h *ThreadsHandler) List() http.HandlerFunc {
 			return
 		}
 		w.Header().Set("Content-Type", "text/html charset=UTF-8")
-		_ = tmpl.Execute(w, data{Threads: ts})
+		_ = tmpl.Execute(w, struct{ Threads []goreddit.Thread }{Threads: ts})
 	}
 }
 
 func (h *ThreadsHandler) Show() http.HandlerFunc {
+
 	tmpl := template.Must(template.ParseFiles("web/templates/layout.html", "web/templates/thread.html"))
 	return func(w http.ResponseWriter, r *http.Request) {
 		idStr := chi.URLParam(r, "id")
@@ -61,14 +60,16 @@ func (h *ThreadsHandler) Show() http.HandlerFunc {
 }
 
 func (h *ThreadsHandler) New() http.HandlerFunc {
+
 	tmpl := template.Must(template.ParseFiles("web/templates/layout.html", "web/templates/thread_new.html"))
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html charset=UTF-8")
-		_ = tmpl.Execute(w, nil)
+		_ = tmpl.Execute(w, struct{ CSRF template.HTML }{csrf.TemplateField(r)})
 	}
 }
 
 func (h *ThreadsHandler) Save() http.HandlerFunc {
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		title := r.FormValue("title")
 		description := r.FormValue("description")
@@ -86,6 +87,7 @@ func (h *ThreadsHandler) Save() http.HandlerFunc {
 }
 
 func (h *ThreadsHandler) Delete() http.HandlerFunc {
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		idStr := chi.URLParam(r, "id")
 		id, err := uuid.Parse(idStr)

@@ -15,7 +15,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	h := web.NewHandler(store)
+	csrfKey := []byte("01234567890123456789012345678901") // a 32-bytes long CSRF key
+
+	h := web.NewHandler(store, csrfKey)
 	log.Println(">>> Starting the Web server ...")
 	log.Fatal(http.ListenAndServe(":3000", h))
 

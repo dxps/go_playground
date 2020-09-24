@@ -8,6 +8,7 @@ import (
 	goreddit "devisions.org/go-reddit"
 	"github.com/go-chi/chi"
 	"github.com/google/uuid"
+	"github.com/gorilla/csrf"
 )
 
 type PostsHandler struct {
@@ -15,6 +16,7 @@ type PostsHandler struct {
 }
 
 func (h *PostsHandler) New() http.HandlerFunc {
+
 	tmpl := template.Must(template.ParseFiles("web/templates/layout.html", "web/templates/post_new.html"))
 	return func(w http.ResponseWriter, r *http.Request) {
 		idStr := chi.URLParam(r, "id")
@@ -29,11 +31,15 @@ func (h *PostsHandler) New() http.HandlerFunc {
 			return
 		}
 		w.Header().Set("Content-Type", "text/html charset=UTF-8")
-		_ = tmpl.Execute(w, struct{ Thread goreddit.Thread }{t})
+		_ = tmpl.Execute(w, struct {
+			Thread goreddit.Thread
+			CSRF   template.HTML
+		}{t, csrf.TemplateField(r)})
 	}
 }
 
 func (h *PostsHandler) Show() http.HandlerFunc {
+
 	tmpl := template.Must(template.ParseFiles("web/templates/layout.html", "web/templates/post.html"))
 	return func(w http.ResponseWriter, r *http.Request) {
 		threadIDStr := chi.URLParam(r, "threadID")
@@ -69,11 +75,13 @@ func (h *PostsHandler) Show() http.HandlerFunc {
 			Thread   goreddit.Thread
 			Post     goreddit.Post
 			Comments []goreddit.Comment
-		}{t, p, cs})
+			CSRF     template.HTML
+		}{t, p, cs, csrf.TemplateField(r)})
 	}
 }
 
 func (h *PostsHandler) Save() http.HandlerFunc {
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		title := r.FormValue("title")
 		content := r.FormValue("content")
@@ -100,6 +108,7 @@ func (h *PostsHandler) Save() http.HandlerFunc {
 }
 
 func (h *PostsHandler) Vote() http.HandlerFunc {
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		idStr := chi.URLParam(r, "postID")
 		id, err := uuid.Parse(idStr)
