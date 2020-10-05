@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	goreddit "devisions.org/go-reddit"
+	"github.com/alexedwards/scs/v2"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/gorilla/csrf"
@@ -12,22 +13,25 @@ import (
 
 type Handler struct {
 	*chi.Mux
-	store goreddit.Store
+	store    goreddit.Store
+	sessions *scs.SessionManager
 }
 
-func NewHandler(store goreddit.Store, csrfKey []byte) *Handler {
+func NewHandler(store goreddit.Store, sessions *scs.SessionManager, csrfKey []byte) *Handler {
 
 	h := &Handler{
-		Mux:   chi.NewMux(),
-		store: store,
+		Mux:      chi.NewMux(),
+		store:    store,
+		sessions: sessions,
 	}
 
-	threads := ThreadsHandler{store}
-	posts := PostsHandler{store}
-	comments := CommentsHandler{store}
+	threads := ThreadsHandler{store, sessions}
+	posts := PostsHandler{store, sessions}
+	comments := CommentsHandler{store, sessions}
 
 	h.Use(middleware.Logger)
 	h.Use(csrf.Protect(csrfKey, csrf.Secure(false), csrf.CookieName("csrf_token"), csrf.FieldName("csrf_token")))
+	h.Use(sessions.LoadAndSave)
 
 	h.Get("/", h.HomeHandler())
 
