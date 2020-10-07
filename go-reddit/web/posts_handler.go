@@ -34,9 +34,10 @@ func (h *PostsHandler) New() http.HandlerFunc {
 		}
 		w.Header().Set("Content-Type", "text/html charset=UTF-8")
 		_ = tmpl.Execute(w, struct {
+			SessionData
 			Thread goreddit.Thread
 			CSRF   template.HTML
-		}{t, csrf.TemplateField(r)})
+		}{GetSessionData(h.sessions, r.Context()), t, csrf.TemplateField(r)})
 	}
 }
 
@@ -74,11 +75,12 @@ func (h *PostsHandler) Show() http.HandlerFunc {
 
 		w.Header().Set("Content-Type", "text/html charset=UTF-8")
 		_ = tmpl.Execute(w, struct {
+			SessionData
 			Thread   goreddit.Thread
 			Post     goreddit.Post
 			Comments []goreddit.Comment
 			CSRF     template.HTML
-		}{t, p, cs, csrf.TemplateField(r)})
+		}{GetSessionData(h.sessions, r.Context()), t, p, cs, csrf.TemplateField(r)})
 	}
 }
 
@@ -105,6 +107,7 @@ func (h *PostsHandler) Save() http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		h.sessions.Put(r.Context(), "flash", "Your post has been created.")
 		http.Redirect(w, r, fmt.Sprintf("/threads/%s/%s", tid, p.ID), http.StatusFound)
 	}
 }

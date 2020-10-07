@@ -65,7 +65,11 @@ func (h *Handler) HomeHandler() http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+
 		w.Header().Set("Content-Type", "text/html charset=UTF-8")
-		_ = tmpl.Execute(w, struct{ Posts []goreddit.Post }{ps})
+		_ = tmpl.Execute(w, struct {
+			SessionData
+			Posts []goreddit.Post
+		}{GetSessionData(h.sessions, r.Context()), ps})
 	}
 }

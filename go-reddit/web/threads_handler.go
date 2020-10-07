@@ -28,7 +28,10 @@ func (h *ThreadsHandler) List() http.HandlerFunc {
 			return
 		}
 		w.Header().Set("Content-Type", "text/html charset=UTF-8")
-		_ = tmpl.Execute(w, struct{ Threads []goreddit.Thread }{Threads: ts})
+		_ = tmpl.Execute(w, struct {
+			SessionData
+			Threads []goreddit.Thread
+		}{GetSessionData(h.sessions, r.Context()), ts})
 	}
 }
 
@@ -53,11 +56,13 @@ func (h *ThreadsHandler) Show() http.HandlerFunc {
 			return
 		}
 		w.Header().Set("Content-Type", "text/html charset=UTF-8")
-		data := struct {
+
+		_ = tmpl.Execute(w, struct {
+			SessionData
+			CSRF   template.HTML
 			Thread goreddit.Thread
 			Posts  []goreddit.Post
-		}{t, ps}
-		_ = tmpl.Execute(w, data)
+		}{GetSessionData(h.sessions, r.Context()), csrf.TemplateField(r), t, ps})
 	}
 }
 
@@ -66,7 +71,10 @@ func (h *ThreadsHandler) New() http.HandlerFunc {
 	tmpl := template.Must(template.ParseFiles("web/templates/layout.html", "web/templates/thread_new.html"))
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html charset=UTF-8")
-		_ = tmpl.Execute(w, struct{ CSRF template.HTML }{csrf.TemplateField(r)})
+		_ = tmpl.Execute(w, struct {
+			SessionData
+			CSRF template.HTML
+		}{GetSessionData(h.sessions, r.Context()), csrf.TemplateField(r)})
 	}
 }
 
@@ -84,6 +92,7 @@ func (h *ThreadsHandler) Save() http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		h.sessions.Put(r.Context(), "flash", "Your new thread has been created.")
 		http.Redirect(w, r, "/threads", http.StatusFound)
 	}
 }
@@ -101,6 +110,7 @@ func (h *ThreadsHandler) Delete() http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		h.sessions.Put(r.Context(), "flash", "The thread has been deleted.")
 		http.Redirect(w, r, "/threads", http.StatusFound)
 	}
 }

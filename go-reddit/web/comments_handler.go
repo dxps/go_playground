@@ -33,6 +33,7 @@ func (h *CommentsHandler) Save() http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		h.sessions.Put(r.Context(), "flash", "Your comment has been submitted.")
 		http.Redirect(w, r, r.Referer(), http.StatusFound)
 	}
 }
