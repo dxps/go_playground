@@ -4,6 +4,7 @@ import "encoding/gob"
 
 func init() {
 	gob.Register(CreatePostForm{})
+	gob.Register(CreateThreadForm{})
 	gob.Register(FormErrors{})
 }
 
@@ -23,6 +24,24 @@ func (f *CreatePostForm) Validate() bool {
 	}
 	if f.Content == "" {
 		f.Errors["Content"] = "Please enter a content"
+	}
+	return len(f.Errors) == 0
+}
+
+type CreateThreadForm struct {
+	Title       string
+	Description string
+	Errors      FormErrors
+}
+
+func (f *CreateThreadForm) Validate() bool {
+
+	f.Errors = FormErrors{}
+	if f.Title == "" {
+		f.Errors["Title"] = "Please provide a title"
+	}
+	if f.Description == "" {
+		f.Errors["Description"] = "Please enter a description"
 	}
 	return len(f.Errors) == 0
 }

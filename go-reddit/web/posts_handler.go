@@ -91,7 +91,6 @@ func (h *PostsHandler) Save() http.HandlerFunc {
 			Title:   r.FormValue("title"),
 			Content: r.FormValue("content"),
 		}
-
 		if !form.Validate() {
 			h.sessions.Put(r.Context(), "form", form)
 			http.Redirect(w, r, r.Referer(), http.StatusFound)
