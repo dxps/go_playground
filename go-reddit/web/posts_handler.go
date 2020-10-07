@@ -87,8 +87,16 @@ func (h *PostsHandler) Show() http.HandlerFunc {
 func (h *PostsHandler) Save() http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		title := r.FormValue("title")
-		content := r.FormValue("content")
+		form := CreatePostForm{
+			Title:   r.FormValue("title"),
+			Content: r.FormValue("content"),
+		}
+
+		if !form.Validate() {
+			h.sessions.Put(r.Context(), "form", form)
+			http.Redirect(w, r, r.Referer(), http.StatusFound)
+			return
+		}
 
 		idStr := chi.URLParam(r, "id")
 		tid, err := uuid.Parse(idStr)
@@ -100,8 +108,8 @@ func (h *PostsHandler) Save() http.HandlerFunc {
 		p := goreddit.Post{
 			ID:       uuid.New(),
 			ThreadID: tid,
-			Title:    title,
-			Content:  content,
+			Title:    form.Title,
+			Content:  form.Content,
 		}
 		if err := h.store.SavePost(&p); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
