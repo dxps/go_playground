@@ -25,8 +25,12 @@
     <div class="text-right">
         <form action="/threads/{{.Thread.ID}}/{{.Post.ID}}" method="POST">
             {{.CSRF}}
-            <textarea name="content" class="form-control border-0 border-bottom-1 p-3"
+            <textarea name="content" 
+            class="form-control border-0 border-bottom-1 p-3 {{with .Form.Errors.Content}}is-invalid{{end}}"
                 placeholder="What are your thoughts?" rows="4"></textarea>
+            {{with .Form.Errors.Content}}
+                <div class="invalid-feedback">{{.}}</div>
+            {{end}}
             <div class="border-top p-1">
                 <button class="btn btn-primary btn-sm">Comment</button>
             </div>
