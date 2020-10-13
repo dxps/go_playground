@@ -1,0 +1,10 @@
+
+## the air's working dir
+.air
+
+## PostgreSQL's container data
+.pgdata
+
+## Experiments space
+## (temporary used)
+## exp

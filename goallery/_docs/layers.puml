@@ -1,0 +1,31 @@
+@startuml Layers
+
+hide empty description
+
+title
+The Application Layers
+<font size="09" color="grey">2020-05-10</font>
+
+end title
+
+Handlers: The i/o and presentation layer.
+state Handlers {
+    UserHandlers:
+}
+
+Services: The business logic layer.
+state Services {
+    UserService -right-> UserValidator: validate
+}
+
+Persistence: The storage layer.
+state Persistence {
+    UserStore --> userStoreGorm : impl
+    userStoreGorm -left-> PostgresDB: crud\noperations
+}
+
+[*] --> UserHandlers 
+UserHandlers --> UserService
+UserValidator --> UserStore
+
+@enduml

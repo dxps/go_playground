@@ -1,0 +1,4 @@
+
+## local persistence volume of PostgreSQL DB container
+.pgdata
+

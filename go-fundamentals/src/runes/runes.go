@@ -13,7 +13,7 @@ func main() {
 	)
 
 	// printing the (numeric) values and associated characters
-	fmt.Printf(" %6v %6v \t %6v \n %6[1]c %6[2]c %6[3]c\n", alpha, omega, pi)
+	fmt.Printf(" %6v %6v %6v \n %6[1]c %6[2]c %6[3]c\n", alpha, omega, pi)
 
 	question := "¿Cómo estás?"
 	fmt.Println(len(question), "bytes")                    // prints "15 bytes"
