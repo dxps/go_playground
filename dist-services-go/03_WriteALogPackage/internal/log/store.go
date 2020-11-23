@@ -42,7 +42,7 @@ func newStore(f *os.File) (*store, error) {
 // Append the given bytes of a record to the store.
 //
 // It returns: `n`umber of bytes written, `pos`ition of the record in the store file,
-// `err`or in case of an issue.
+// plus any `err`or in case of an issue.
 func (s *store) Append(p []byte) (n uint64, pos uint64, err error) {
 
 	s.mu.Lock()
