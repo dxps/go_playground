@@ -12,3 +12,16 @@ The following terms are being used in the design and code:
 | `Segment` | The abstraction that ties a store and an index together. |
 | `Log` | The abstraction that ties all the segments together |
 
+### Setup
+
+The following prerequisites are needed:
+- Protocol Buffers Compiler to be installed
+  ```shell
+  $ wget https://github.com/protocolbuffers/protobuf/releases/download/v3.14.0/protoc-3.14.0-linux-x86_64.zip
+  $ sudo unzip protoc-3.14.0-linux-x86_64.zip -d ~/apps/protobuf
+  $ export PATH="$PATH:~/apps/protobuf/bin" # add it to your ~/.profile
+  ```
+- `gogoprotobuf` as Protocol Buffers Runtime to be installed
+  `go get github.com/gogo/protobuf/...@v1.3.1`
+
+  
