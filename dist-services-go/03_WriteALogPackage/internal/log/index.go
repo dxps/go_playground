@@ -12,10 +12,11 @@ var (
 	offWidth uint64 = 4
 	// number of bytes used for storing the record's position
 	posWidth uint64 = 8
-	entWidth        = offWidth + posWidth
+	// number of bytes used for storing both the record's offset and position
+	entWidth = offWidth + posWidth
 )
 
-// An index entry contains two fields:
+// An entry in the `index` contains two fields:
 // 1. The record's offset (stored as uint32)
 // 2. Its position (stored as uint64) in the store file.
 
@@ -68,7 +69,7 @@ func (i *index) Close() error {
 }
 
 // Read returns the associated record's `off`set and `pos`ition in the store
-// based on the given segment offset. This `setOff` is relative to the segment's
+// based on the given segment offset `setOff` which is relative to the segment's
 // base offset: 0 is the offset of the 1st entry, 1 is the 2nd entry, and so on.
 func (i *index) Read(segOff int64) (off uint32, pos uint64, err error) {
 
@@ -80,6 +81,7 @@ func (i *index) Read(segOff int64) (off uint32, pos uint64, err error) {
 	} else {
 		off = uint32(segOff)
 	}
+	// jumping straight to the position of an entry given its offset
 	pos = uint64(off) * entWidth
 	if i.size < pos+entWidth {
 		return 0, 0, io.EOF
