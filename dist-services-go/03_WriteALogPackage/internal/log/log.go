@@ -121,6 +121,7 @@ func (l *Log) Close() error {
 
 	l.mu.Lock()
 	defer l.mu.Unlock()
+
 	for _, segment := range l.segments {
 		if err := segment.Close(); err != nil {
 			return err
@@ -150,16 +151,20 @@ func (l *Log) Reset() error {
 // LowestOffset returns the lowest offset of this log.
 // This is used by the consensus mechanism.
 func (l *Log) LowestOffset() (uint64, error) {
+
 	l.mu.RLock()
 	defer l.mu.RUnlock()
+
 	return l.segments[0].baseOffset, nil
 }
 
 // LowestOffset returns the highest offset of this log.
 // This is used by the consensus mechanism.
 func (l *Log) HighestOffset() (uint64, error) {
+
 	l.mu.RLock()
 	defer l.mu.RUnlock()
+
 	off := l.segments[len(l.segments)-1].nextOffset
 	if off == 0 {
 		return 0, nil
@@ -193,6 +198,7 @@ func (l *Log) Reader() io.Reader {
 
 	l.mu.RLock()
 	defer l.mu.RUnlock()
+
 	readers := make([]io.Reader, len(l.segments))
 	for i, segment := range l.segments {
 		readers[i] = &originReader{segment.store, 0}
@@ -206,6 +212,7 @@ type originReader struct {
 }
 
 func (o *originReader) Read(p []byte) (int, error) {
+
 	n, err := o.ReadAt(p, o.off)
 	o.off += int64(n)
 	return n, err
