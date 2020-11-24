@@ -1,11 +1,12 @@
 package log
 
 import (
-	api "devisions.org/go-dist-svcs/log/api/v1"
 	"fmt"
-	"github.com/gogo/protobuf/proto"
 	"os"
 	"path"
+
+	api "devisions.org/go-dist-svcs/log/api/v1"
+	"github.com/gogo/protobuf/proto"
 )
 
 type segment struct {
@@ -46,18 +47,13 @@ func newSegment(dir string, baseOffset uint64, c Config) (*segment, error) {
 	}
 	if off, _, err := s.index.Read(-1); err != nil {
 		s.nextOffset = baseOffset
-		fmt.Printf("[tmp] newSegment > Starting with baseOffset:%d, got index's off:%d and set nextOffset:%d\n",
-			baseOffset, off, s.nextOffset)
 	} else {
 		s.nextOffset = baseOffset + uint64(off) + 1
-		fmt.Printf("[tmp] newSegment > Starting with baseOffset:%d, got index's off:%d and set nextOffset:%d\n",
-			baseOffset, off, s.nextOffset)
 	}
 	return s, nil
 }
 
-// Append adds the given `rec`ord to the segment and returns its `off`set
-// that is relative to the segment's base offset.
+// Append adds the given `rec`ord to the segment and returns its `off`set.
 func (s *segment) Append(rec *api.Record) (off uint64, err error) {
 
 	cur := s.nextOffset
@@ -71,12 +67,14 @@ func (s *segment) Append(rec *api.Record) (off uint64, err error) {
 		return 0, err
 	}
 	if err = s.index.Write(
-		// index's offsets are relative to the segment's base offset.
+		// index's offsets are internally stored relative to the segment's base offset.
 		uint32(s.nextOffset-s.baseOffset),
 		pos,
 	); err != nil {
 		return 0, err
 	}
+	//fmt.Printf("segment.Append > storing in index: offset:%d, pos:%d, ret off:%d\n",
+	//	uint32(s.nextOffset-s.baseOffset), pos, cur)
 	s.nextOffset++
 	return cur, nil
 }

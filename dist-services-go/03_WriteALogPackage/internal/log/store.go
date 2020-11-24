@@ -62,6 +62,7 @@ func (s *store) Append(p []byte) (n uint64, pos uint64, err error) {
 	// (stored as uint64, that's why lenWidth has the 8 (bytes) size).
 	w += lenWidth
 	s.size += uint64(w)
+	// fmt.Printf("store.Append > len(p):%d, size:%d, ret n:%d pos:%d\n", len(p), s.size, uint64(w), pos)
 
 	return uint64(w), pos, nil
 }
