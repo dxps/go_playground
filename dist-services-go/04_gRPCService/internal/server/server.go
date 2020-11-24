@@ -7,8 +7,8 @@ import (
 	"google.golang.org/grpc"
 )
 
-// This line is a trick which guarantees that *grpcServer type satisfies the `api.LogServer` interface.
-var _ api.LogServer = (*grpcServer)(nil)
+// This line is a trick which guarantees that *grpcLogServer type satisfies the `api.LogServer` interface.
+var _ api.LogServer = (*grpcLogServer)(nil)
 
 type Config struct {
 	CommitLog CommitLog
@@ -17,7 +17,7 @@ type Config struct {
 func NewGRPCServer(config *Config) (*grpc.Server, error) {
 
 	gsrv := grpc.NewServer()
-	srv, err := newgrpcServer(config)
+	srv, err := newgrpcLogServer(config)
 	if err != nil {
 		return nil, err
 	}
@@ -25,18 +25,18 @@ func NewGRPCServer(config *Config) (*grpc.Server, error) {
 	return gsrv, nil
 }
 
-type grpcServer struct {
+type grpcLogServer struct {
 	*Config
 }
 
-func newgrpcServer(config *Config) (srv *grpcServer, err error) {
-	srv = &grpcServer{
+func newgrpcLogServer(config *Config) (srv *grpcLogServer, err error) {
+	srv = &grpcLogServer{
 		Config: config,
 	}
 	return srv, nil
 }
 
-func (s *grpcServer) Produce(ctx context.Context, req *api.ProduceRequest) (*api.ProduceResponse, error) {
+func (s *grpcLogServer) Produce(ctx context.Context, req *api.ProduceRequest) (*api.ProduceResponse, error) {
 
 	offset, err := s.CommitLog.Append(req.Record)
 	if err != nil {
@@ -45,7 +45,7 @@ func (s *grpcServer) Produce(ctx context.Context, req *api.ProduceRequest) (*api
 	return &api.ProduceResponse{Offset: offset}, nil
 }
 
-func (s *grpcServer) Consume(ctx context.Context, req *api.ConsumeRequest) (*api.ConsumeResponse, error) {
+func (s *grpcLogServer) Consume(ctx context.Context, req *api.ConsumeRequest) (*api.ConsumeResponse, error) {
 
 	record, err := s.CommitLog.Read(req.Offset)
 	if err != nil {
@@ -56,7 +56,7 @@ func (s *grpcServer) Consume(ctx context.Context, req *api.ConsumeRequest) (*api
 
 // ProduceStream implements a bidirectional streaming RPC: the client can stream data into server's log
 // and the server can tell the client whether each request succeeded.
-func (s *grpcServer) ProduceStream(stream api.Log_ProduceStreamServer) error {
+func (s *grpcLogServer) ProduceStream(stream api.Log_ProduceStreamServer) error {
 
 	for {
 		req, err := stream.Recv()
@@ -76,7 +76,7 @@ func (s *grpcServer) ProduceStream(stream api.Log_ProduceStreamServer) error {
 // ConsumeStream implements a server-side streaming RPC: the client can tell the server
 // where in the log to read records, and the server will stream every record that follows
 // (including any future records that may appear).
-func (s *grpcServer) ConsumeStream(req *api.ConsumeRequest, stream api.Log_ConsumeStreamServer) error {
+func (s *grpcLogServer) ConsumeStream(req *api.ConsumeRequest, stream api.Log_ConsumeStreamServer) error {
 
 	for {
 		select {
