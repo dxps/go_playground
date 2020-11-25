@@ -14,14 +14,14 @@ The following terms are being used in the design and code:
 
 ### Setup
 
-The following prerequisites are needed:
-- Protocol Buffers Compiler to be installed
+As prerequisites, the following packages need to be installed:
+- Protocol Buffers Compiler (`protoc`)
   ```shell
   $ wget https://github.com/protocolbuffers/protobuf/releases/download/v3.14.0/protoc-3.14.0-linux-x86_64.zip
   $ unzip protoc-3.14.0-linux-x86_64.zip -d ~/apps/protoc
   $ export PATH="$PATH:~/apps/protoc/bin" # add it to your ~/.profile
   ```
-- `gogoprotobuf` as Protocol Buffers Runtime to be installed
+- Protocol Buffers Runtime (`gogoprotobuf`)
   `go get github.com/gogo/protobuf/...@v1.3.1`
 - gRPC plugin
   `go get google.golang.org/grpc@v1.33.2`
