@@ -1,5 +1,6 @@
 {
-  "CN": "devisions CA",
+  "CN": "client",
+  "hosts": [""],
   "key": {
     "algo": "rsa",
     "size": 2048
@@ -10,7 +11,7 @@
       "L": "B",
       "ST": "B",
       "O": "devisions",
-      "OU": "CA"
+      "OU": "Distributed Services"
     }
   ]
 }

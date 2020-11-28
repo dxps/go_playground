@@ -4,19 +4,44 @@ import (
 	"context"
 
 	api "devisions.org/go-dist-svcs/log/api/v1"
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	grpc_auth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/peer"
+	"google.golang.org/grpc/status"
 )
 
 // This line is a trick which guarantees that *grpcLogServer type satisfies the `api.LogServer` interface.
 var _ api.LogServer = (*grpcLogServer)(nil)
 
 type Config struct {
-	CommitLog CommitLog
+	CommitLog  CommitLog
+	Authorizer Authorizer
 }
 
-func NewGRPCServer(config *Config) (*grpc.Server, error) {
+const (
+	objectWildcard = "*"
+	produceAction  = "produce"
+	consumeAction  = "consume"
+)
 
-	gsrv := grpc.NewServer()
+func NewGRPCServer(config *Config, opts ...grpc.ServerOption) (*grpc.Server, error) {
+
+	opts = append(opts,
+		grpc.StreamInterceptor(
+			grpc_middleware.ChainStreamServer(
+				grpc_auth.StreamServerInterceptor(authenticate),
+			),
+		),
+		grpc.UnaryInterceptor(
+			grpc_middleware.ChainUnaryServer(
+				grpc_auth.UnaryServerInterceptor(authenticate),
+			),
+		),
+	)
+	gsrv := grpc.NewServer(opts...)
 	srv, err := newgrpcLogServer(config)
 	if err != nil {
 		return nil, err
@@ -38,6 +63,14 @@ func newgrpcLogServer(config *Config) (srv *grpcLogServer, err error) {
 
 func (s *grpcLogServer) Produce(ctx context.Context, req *api.ProduceRequest) (*api.ProduceResponse, error) {
 
+	if err := s.Authorizer.Authorize(
+		subject(ctx),
+		objectWildcard,
+		produceAction,
+	); err != nil {
+		return nil, err
+	}
+
 	offset, err := s.CommitLog.Append(req.Record)
 	if err != nil {
 		return nil, err
@@ -46,6 +79,14 @@ func (s *grpcLogServer) Produce(ctx context.Context, req *api.ProduceRequest) (*
 }
 
 func (s *grpcLogServer) Consume(ctx context.Context, req *api.ConsumeRequest) (*api.ConsumeResponse, error) {
+
+	if err := s.Authorizer.Authorize(
+		subject(ctx),
+		objectWildcard,
+		consumeAction,
+	); err != nil {
+		return nil, err
+	}
 
 	record, err := s.CommitLog.Read(req.Offset)
 	if err != nil {
@@ -105,3 +146,31 @@ type CommitLog interface {
 	Append(*api.Record) (uint64, error)
 	Read(uint64) (*api.Record, error)
 }
+
+type Authorizer interface {
+	Authorize(subject, object, action string) error
+}
+
+// authenticate works like an interceptor that reads the subject
+// out of the client's certificate and writes it to the RPC's context.
+func authenticate(ctx context.Context) (context.Context, error) {
+
+	peer, ok := peer.FromContext(ctx)
+	if !ok {
+		return ctx, status.New(codes.Unknown, "could not find peer info").Err()
+	}
+	if peer.AuthInfo == nil {
+		return ctx, status.New(codes.Unauthenticated, "no transport security being used").Err()
+	}
+	tlsInfo := peer.AuthInfo.(credentials.TLSInfo)
+	subject := tlsInfo.State.VerifiedChains[0][0].Subject.CommonName
+	ctx = context.WithValue(ctx, subjectContextKey{}, subject)
+
+	return ctx, nil
+}
+
+func subject(ctx context.Context) string {
+	return ctx.Value(subjectContextKey{}).(string)
+}
+
+type subjectContextKey struct{}
