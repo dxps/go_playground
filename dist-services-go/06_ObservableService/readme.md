@@ -40,5 +40,11 @@ And running `make gencert` should generate the `.csr`, `.pem`, and `-key.pem` fi
 
 Latest `casbin` version 2 was installed (using `go get github.com/casbin/casbin/v2@v2.19.1`) as a dependency.
 
+<br/>
+
+
+## Phase Notes
+
+In this 6th phase, _ObservableService_, we enabled Telemetry (by adding metrics and traces) in Server tests (`server_test.go`). Testing with this enabled can be done by running `go test -v -debug=true` being in `internal/server`.
 
 
