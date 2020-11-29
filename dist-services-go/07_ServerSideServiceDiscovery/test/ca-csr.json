@@ -1,0 +1,16 @@
+{
+  "CN": "devisions CA",
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+      "C": "RO",
+      "L": "B",
+      "ST": "B",
+      "O": "devisions",
+      "OU": "CA"
+    }
+  ]
+}
