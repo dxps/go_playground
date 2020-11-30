@@ -121,5 +121,5 @@ func (r *Replicator) Close() error {
 }
 
 func (r *Replicator) err(err error) {
-	log.Printf("[ERROR] proglog: %v", err)
+	log.Printf("[ERROR] dist-svcs-go: %v", err)
 }
