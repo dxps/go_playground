@@ -11,8 +11,11 @@ The followings were installed from a location outside of this project, since we 
   $ rm protoc-3.14.0-linux-x86_64.zip
   $ export PATH=$PATH:${HOME}/apps/protoc/bin   # add it to your ~/.profile
   ```
+  Of course, the example is for a Linux 64bit platform. On macOS, either install it using Homebrew or choose this old school (no hidden details) approach, but use `protoc-3.14.0-osx-x86_64.zip`.
 - gRPC-Go (the gRPC plugin for Protocol Buffers) using `go get -u google.golang.org/grpc`
 - protobuf (Go support for Protocol Buffers) using `go get -u github.com/golang/protobuf/protoc-gen-go`
 
-### 
+### Generate gRPC Go code
+
+Use provided `generate.sh` script.
 
