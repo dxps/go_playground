@@ -16,7 +16,7 @@ import (
 )
 
 func main() {
-	// graceful shutdown elements
+	// Preparing the graceful shutdown elements.
 	stopCtx, cancelFn := context.WithTimeout(context.Background(), 1*time.Minute)
 	stopWg := &sync.WaitGroup{}
 	stopWg.Add(2)
@@ -30,8 +30,8 @@ func main() {
 }
 
 func reader(dataCh chan *data.SomeData, stopCtx context.Context, stopWg *sync.WaitGroup) {
-	filePath := "/home/devisions/tmp/test_dio"
-	block := directio.AlignedBlock(directio.AlignSize)
+	filePath := "/Users/devisions/tmp/test_dio"
+	block := directio.AlignedBlock(data.BlockSize)
 	file, err := directio.OpenFile(filePath, os.O_CREATE|os.O_RDONLY, 0666)
 	if err != nil {
 		log.Fatalf("Failed to open file for reading. Reason: %s", err)
@@ -58,6 +58,7 @@ func reader(dataCh chan *data.SomeData, stopCtx context.Context, stopWg *sync.Wa
 			if err == io.EOF {
 				fmt.Print(".")
 				time.Sleep(1 * time.Second)
+				continue
 			}
 			dataCh <- data.Decode(block)
 		}
@@ -75,9 +76,10 @@ func consumer(dataCh chan *data.SomeData, stopCtx context.Context, stopWg *sync.
 			log.Println("Stopping the consumer ...")
 			running = false
 			break
+		case data := <-dataCh:
+			log.Printf("Got %+v\n", *data)
 		default:
-			data := <-dataCh
-			log.Println("Got", data)
+			time.Sleep(1 * time.Second)
 		}
 	}
 	log.Println("Consumer has stopped.")

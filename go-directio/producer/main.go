@@ -15,7 +15,7 @@ import (
 )
 
 func main() {
-	// graceful shutdown elements
+	// Preparing the graceful shutdown elements.
 	stopCtx, cancelFn := context.WithTimeout(context.Background(), 1*time.Minute)
 	stopWg := &sync.WaitGroup{}
 	stopWg.Add(2)
@@ -29,8 +29,8 @@ func main() {
 }
 
 func writer(dataCh chan data.SomeData, stopCtx context.Context, stopWg *sync.WaitGroup) {
-	file := "/home/devisions/tmp/test_dio"
-	block := directio.AlignedBlock(directio.AlignSize)
+	file := "/Users/devisions/tmp/test_dio"
+	block := directio.AlignedBlock(data.BlockSize)
 	out, err := directio.OpenFile(file, os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
 		log.Fatalf("Failed to open file for writing. Reason: %s", err)
@@ -48,14 +48,21 @@ func writer(dataCh chan data.SomeData, stopCtx context.Context, stopWg *sync.Wai
 			running = false
 			break
 		case data := <-dataCh:
-			data.Encode(block)
-			_, err := out.Write(block)
+			err := data.Encode(block)
 			if err != nil {
-				log.Printf("Failed to write to file. Reason: %s", err)
+				log.Println("Failed to encode data. Reason:", err)
 				running = false
 				break
 			}
+			_, err = out.Write(block)
+			if err != nil {
+				log.Println("Failed to write to file. Reason:", err)
+				running = false
+				break
+			}
+		default:
 			fmt.Print(".")
+			time.Sleep(1 * time.Second)
 		}
 	}
 	log.Println("Writer stopped.")
@@ -73,7 +80,10 @@ func producer(dataCh chan data.SomeData, stopCtx context.Context, stopWg *sync.W
 			running = false
 			break
 		default:
-			dataCh <- data.SomeData{Value: i}
+			i++
+			d := data.SomeData{Value: i}
+			dataCh <- d
+			log.Printf("Produced %+v\n", d)
 			time.Sleep(1 * time.Second)
 		}
 	}

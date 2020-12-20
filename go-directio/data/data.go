@@ -3,21 +3,27 @@ package data
 import (
 	"bytes"
 	"encoding/gob"
+	"errors"
 	"io"
 	"log"
 )
+
+// Using a blocksize smaller than directio's 4K one.
+const BlockSize = 64
 
 type SomeData struct {
 	Value uint32
 }
 
-func (d *SomeData) Encode(to []byte) {
+func (d *SomeData) Encode(to []byte) error {
 	buf := bytes.Buffer{}
-	_ = gob.NewEncoder(&buf).Encode(d)
-	_, err := buf.Write(to)
-	if err != nil {
-		log.Printf("Failed to encode the data. Reason: %s", err)
+	_ = gob.NewEncoder(&buf).Encode(*d)
+	if len(to) < buf.Len() {
+		return errors.New("Unable to store encoded data since received buffer is smaller.")
 	}
+	// n, err := buf.Write(to)
+	copy(to, buf.Bytes())
+	return nil
 }
 
 func Decode(from []byte) *SomeData {
