@@ -52,15 +52,17 @@ func reader(dataCh chan *data.SomeData, stopCtx context.Context, stopWg *sync.Wa
 			_, err := file.Read(block)
 			if err != nil && err != io.EOF {
 				log.Fatalln("Failed to read from file. Reason:", err)
-				running = false
-				break
 			}
 			if err == io.EOF {
 				fmt.Print(".")
 				time.Sleep(1 * time.Second)
 				continue
 			}
-			dataCh <- data.Decode(block)
+			d, err := data.Decode(block)
+			if err != nil {
+				log.Fatalln("Failed to decode data", err)
+			}
+			dataCh <- d
 		}
 	}
 	log.Println("Reader has stopped.")
