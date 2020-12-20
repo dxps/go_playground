@@ -10,12 +10,13 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/devisions/go-playground/go-directio/config"
 	"github.com/devisions/go-playground/go-directio/data"
 	"github.com/ncw/directio"
 	"github.com/pkg/errors"
 )
 
-var block = directio.AlignedBlock(data.BlockSize)
+var block []byte
 
 func main() {
 	// Preparing the graceful shutdown elements.
@@ -23,19 +24,25 @@ func main() {
 	stopWg := &sync.WaitGroup{}
 	stopWg.Add(2)
 
+	cfg, err := config.Load()
+	if err != nil {
+		log.Fatal("Failed to load config", err)
+	}
+	log.Printf("Using blocksize %d and writing to file %s\n", cfg.BlockSize, cfg.Filepath)
+	block = directio.AlignedBlock(cfg.BlockSize)
+
 	dataCh := make(chan data.SomeData, 1_000_000)
 	defer close(dataCh)
 
-	go writer(dataCh, stopCtx, stopWg)
+	go writer(cfg, dataCh, stopCtx, stopWg)
 	go producer(dataCh, stopCtx, stopWg)
 
 	waitingForGracefulShutdown(cancelFn, stopWg)
 }
 
-func writer(dataCh chan data.SomeData, stopCtx context.Context, stopWg *sync.WaitGroup) {
-	file := "/Users/devisions/tmp/test_dio"
+func writer(cfg *config.Config, dataCh chan data.SomeData, stopCtx context.Context, stopWg *sync.WaitGroup) {
 
-	out, err := directio.OpenFile(file, os.O_CREATE|os.O_WRONLY, 0666)
+	out, err := directio.OpenFile(cfg.Filepath, os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
 		log.Fatalf("Failed to open file for writing. Reason: %s", err)
 	}

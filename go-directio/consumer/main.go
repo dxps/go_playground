@@ -11,9 +11,12 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/devisions/go-playground/go-directio/config"
 	"github.com/devisions/go-playground/go-directio/data"
 	"github.com/ncw/directio"
 )
+
+var block []byte
 
 func main() {
 	// Preparing the graceful shutdown elements.
@@ -21,18 +24,23 @@ func main() {
 	stopWg := &sync.WaitGroup{}
 	stopWg.Add(2)
 
+	cfg, err := config.Load()
+	if err != nil {
+		log.Fatal("Failed to load config", err)
+	}
+	log.Printf("Using blocksize %d and reading from file %s\n", cfg.BlockSize, cfg.Filepath)
+	block = directio.AlignedBlock(cfg.BlockSize)
+
 	dataCh := make(chan *data.SomeData, 1_000_000)
 
 	go consumer(dataCh, stopCtx, stopWg)
-	go reader(dataCh, stopCtx, stopWg)
+	go reader(cfg, dataCh, stopCtx, stopWg)
 
 	waitingForGracefulShutdown(cancelFn, stopWg)
 }
 
-func reader(dataCh chan *data.SomeData, stopCtx context.Context, stopWg *sync.WaitGroup) {
-	filePath := "/Users/devisions/tmp/test_dio"
-	block := directio.AlignedBlock(data.BlockSize)
-	file, err := directio.OpenFile(filePath, os.O_CREATE|os.O_RDONLY, 0666)
+func reader(cfg *config.Config, dataCh chan *data.SomeData, stopCtx context.Context, stopWg *sync.WaitGroup) {
+	file, err := directio.OpenFile(cfg.Filepath, os.O_CREATE|os.O_RDONLY, 0666)
 	if err != nil {
 		log.Fatalf("Failed to open file for reading. Reason: %s", err)
 	}

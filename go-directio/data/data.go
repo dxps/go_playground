@@ -8,9 +8,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Using a blocksize smaller than directio's 4K one.
-const BlockSize = 64
-
 type SomeData struct {
 	Value uint32
 }

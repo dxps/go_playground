@@ -35,9 +35,3 @@ $ ./run_producer.sh
 
 ## And as you can see above, the consumer "detects" the new entries, meaning the new blocks added after the initial 4 ones already read before by the consumer.
 ```
-
-### TODOs
-
-- [ ] Externalize the config items: <br/>
-    - `BlockSize` - used for writing and reading blocks of serialized data
-    - `ExchangeFile` - full path to the file used for writing into and reading from
