@@ -11,16 +11,19 @@ import (
 	"time"
 
 	"github.com/devisions/go-playground/go-directio/config"
-	"github.com/devisions/go-playground/go-directio/data"
+	"github.com/devisions/go-playground/go-directio/internal/data"
 	"github.com/ncw/directio"
 	"github.com/pkg/errors"
 )
 
 var block []byte
 
+// Global state of the current file to write into.
+var out *os.File
+
 func main() {
 	// Preparing the graceful shutdown elements.
-	stopCtx, cancelFn := context.WithTimeout(context.Background(), 1*time.Minute)
+	stopCtx, cancelFn := context.WithCancel(context.Background())
 	stopWg := &sync.WaitGroup{}
 	stopWg.Add(2)
 
@@ -28,25 +31,28 @@ func main() {
 	if err != nil {
 		log.Fatal("Failed to load config", err)
 	}
-	log.Printf("Using blocksize %d and writing to file %s\n", cfg.BlockSize, cfg.Filepath)
+	log.Printf("Using blocksize %d and writing files in path %s\n", cfg.BlockSize, cfg.Path)
+	// directio.AlignSize = cfg.BlockSize
 	block = directio.AlignedBlock(cfg.BlockSize)
 
 	dataCh := make(chan data.SomeData, 1_000_000)
 	defer close(dataCh)
 
-	go writer(cfg, dataCh, stopCtx, stopWg)
+	go writer(cfg.Path, cfg.FileMaxSize, dataCh, stopCtx, stopWg)
 	go producer(dataCh, stopCtx, stopWg)
 
 	waitingForGracefulShutdown(cancelFn, stopWg)
 }
 
-func writer(cfg *config.Config, dataCh chan data.SomeData, stopCtx context.Context, stopWg *sync.WaitGroup) {
+func writer(filepathPrefix string, fileMaxsize int64, dataCh chan data.SomeData, stopCtx context.Context, stopWg *sync.WaitGroup) {
 
-	out, err := directio.OpenFile(cfg.Filepath, os.O_CREATE|os.O_WRONLY, 0666)
+	f, err := data.GetFileForWriting(nil, filepathPrefix, fileMaxsize)
 	if err != nil {
-		log.Fatalf("Failed to open file for writing. Reason: %s", err)
+		log.Fatalln("Failed to look for the next file to write into. Reason:", err)
 	}
-	log.Println("Ready to write.")
+	out = f
+	log.Println("Ready to write on file", out.Name())
+
 	running := true
 	for running {
 		select {
@@ -54,10 +60,10 @@ func writer(cfg *config.Config, dataCh chan data.SomeData, stopCtx context.Conte
 			log.Println("Stopping the writer ...")
 			l := len(dataCh)
 			if l > 0 {
-				log.Printf("Writing to file the remaining %d data items ...", l)
+				log.Printf("Draining the channel: writing to file the remaining %d data items ...", l)
 				for len(dataCh) > 0 {
 					d := <-dataCh
-					if err := write(out, &d); err != nil {
+					if err := write(filepathPrefix, fileMaxsize, &d); err != nil {
 						log.Println("Failed writing to file. Reason:", err)
 						break
 					}
@@ -70,8 +76,8 @@ func writer(cfg *config.Config, dataCh chan data.SomeData, stopCtx context.Conte
 			}
 			running = false
 			break
-		case data := <-dataCh:
-			if err := write(out, &data); err != nil {
+		case d := <-dataCh:
+			if err := write(filepathPrefix, fileMaxsize, &d); err != nil {
 				log.Println("Failed writing to file. Reason:", err)
 				running = false
 				break
@@ -107,14 +113,22 @@ func producer(dataCh chan data.SomeData, stopCtx context.Context, stopWg *sync.W
 	stopWg.Done()
 }
 
-func write(out *os.File, d *data.SomeData) error {
+func write(filepathPrefix string, fileMaxsize int64, d *data.SomeData) error {
 	err := d.Encode(block)
 	if err != nil {
 		return errors.Wrap(err, "encoding data")
 	}
+	f, err := data.GetFileForWriting(out, filepathPrefix, fileMaxsize)
+	if err != nil {
+		return err
+	}
+	if f.Name() != out.Name() {
+		log.Println("Writing to new file", f.Name())
+		out = f
+	}
 	_, err = out.Write(block)
 	if err != nil {
-		return errors.Wrap(err, "writing to file")
+		return errors.Wrap(err, fmt.Sprintf("writing to file (the item %+v)", *d))
 	}
 	return nil
 }
