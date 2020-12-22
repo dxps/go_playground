@@ -17,8 +17,9 @@ const STATE_FILE = "consumer.state"
 type ConsumerState struct {
 	ReadFilepath  string
 	ReadBlocks    int
+	maxBlocks     int
 	saveFilepath  string
-	SaveBlocksize int
+	saveBlocksize int
 }
 
 func (s *ConsumerState) encode(to []byte) error {
@@ -47,7 +48,7 @@ func (s *ConsumerState) SaveToFile() error {
 		return errors.Wrap(err, "opening file for writing the state")
 	}
 	defer func() { _ = f.Close() }()
-	block := directio.AlignedBlock(s.SaveBlocksize)
+	block := directio.AlignedBlock(s.saveBlocksize)
 	err = s.encode(block)
 	if err != nil {
 		return errors.Wrap(err, "encoding state")
@@ -68,7 +69,7 @@ func InitConsumerState(path string, saveBlocksize int) (*ConsumerState, error) {
 			// The file will eventually be created first time the state is saved.
 			return &ConsumerState{
 				saveFilepath:  filepath,
-				SaveBlocksize: saveBlocksize,
+				saveBlocksize: saveBlocksize,
 			}, nil
 		}
 		return nil, err
@@ -83,6 +84,21 @@ func InitConsumerState(path string, saveBlocksize int) (*ConsumerState, error) {
 		return nil, derr
 	}
 	s.saveFilepath = filepath
-	s.SaveBlocksize = saveBlocksize
+	s.saveBlocksize = saveBlocksize
 	return s, nil
+}
+
+func (s *ConsumerState) UseNew(filepath string) {
+	if filepath != "" && s.ReadFilepath != filepath {
+		s.ReadFilepath = filepath
+		s.ReadBlocks = 1
+	}
+}
+
+func (s *ConsumerState) IsEmpty() bool {
+	return s.ReadFilepath == "" && s.ReadBlocks == 0
+}
+
+func (s *ConsumerState) SeekOffset() int64 {
+	return int64(s.ReadBlocks) * int64(s.saveBlocksize)
 }

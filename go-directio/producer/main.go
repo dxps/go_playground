@@ -12,6 +12,7 @@ import (
 
 	"github.com/devisions/go-playground/go-directio/config"
 	"github.com/devisions/go-playground/go-directio/internal/data"
+	"github.com/devisions/go-playground/go-directio/producer/internal"
 	"github.com/ncw/directio"
 	"github.com/pkg/errors"
 )
@@ -38,7 +39,8 @@ func main() {
 	dataCh := make(chan data.SomeData, 1_000_000)
 	defer close(dataCh)
 
-	go writer(cfg.Path, cfg.FileMaxSize, dataCh, stopCtx, stopWg)
+	fileMaxSize := cfg.MaxBlocks * int64(cfg.BlockSize)
+	go writer(cfg.Path, fileMaxSize, dataCh, stopCtx, stopWg)
 	go producer(dataCh, stopCtx, stopWg)
 
 	waitingForGracefulShutdown(cancelFn, stopWg)
@@ -46,9 +48,12 @@ func main() {
 
 func writer(filepathPrefix string, fileMaxsize int64, dataCh chan data.SomeData, stopCtx context.Context, stopWg *sync.WaitGroup) {
 
-	f, err := data.GetFileForWriting(nil, filepathPrefix, fileMaxsize)
+	f, err := internal.GetFileForWriting(nil, filepathPrefix, fileMaxsize)
 	if err != nil {
 		log.Fatalln("Failed to look for the next file to write into. Reason:", err)
+	}
+	if f == nil { // This should never happen; used just for safety.
+		log.Fatalln("No file to write could be used.")
 	}
 	out = f
 	log.Println("Ready to write on file", out.Name())
@@ -70,10 +75,13 @@ func writer(filepathPrefix string, fileMaxsize int64, dataCh chan data.SomeData,
 					log.Println("Wrote", d)
 				}
 			}
-			err := out.Close()
-			if err != nil {
-				log.Printf("Failed closing the file. Reason: %s", err)
+			if out != nil { // Just for safety reasons.
+				err := out.Close()
+				if err != nil {
+					log.Printf("Failed closing the file. Reason: %s", err)
+				}
 			}
+
 			running = false
 			break
 		case d := <-dataCh:
@@ -118,11 +126,15 @@ func write(filepathPrefix string, fileMaxsize int64, d *data.SomeData) error {
 	if err != nil {
 		return errors.Wrap(err, "encoding data")
 	}
-	f, err := data.GetFileForWriting(out, filepathPrefix, fileMaxsize)
+	f, err := internal.GetFileForWriting(out, filepathPrefix, fileMaxsize)
 	if err != nil {
 		return err
 	}
-	if f.Name() != out.Name() {
+	// A new file has been provided, so close existing and start using it.
+	if f != nil {
+		if err := out.Close(); err != nil {
+			log.Printf("[WARN] Failed to close existing file '%s'. Reason:%s\n", out.Name(), err)
+		}
 		log.Println("Writing to new file", f.Name())
 		out = f
 	}
