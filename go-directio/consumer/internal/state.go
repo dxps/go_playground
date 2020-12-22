@@ -17,7 +17,6 @@ const STATE_FILE = "consumer.state"
 type ConsumerState struct {
 	ReadFilepath  string
 	ReadBlocks    int
-	maxBlocks     int
 	saveFilepath  string
 	saveBlocksize int
 }

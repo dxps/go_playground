@@ -91,8 +91,7 @@ func writer(filepathPrefix string, fileMaxsize int64, dataCh chan data.SomeData,
 				break
 			}
 		default:
-			fmt.Print(".")
-			time.Sleep(1 * time.Second)
+			time.Sleep(500 * time.Millisecond)
 		}
 	}
 	log.Println("Writer stopped.")
@@ -114,7 +113,7 @@ func producer(dataCh chan data.SomeData, stopCtx context.Context, stopWg *sync.W
 			d := data.SomeData{Value: i}
 			dataCh <- d
 			log.Printf("Produced %+v\n", d)
-			time.Sleep(1 * time.Second)
+			time.Sleep(500 * time.Millisecond)
 		}
 	}
 	log.Println("Producer stopped.")
