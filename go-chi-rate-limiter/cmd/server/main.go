@@ -2,13 +2,14 @@ package main
 
 import (
 	"log"
+	"net"
 	"net/http"
 
 	"github.com/devisions/go-playground/go-chi-rate-limit/traffic"
 	"github.com/go-chi/chi"
 )
 
-const ADDR = ":8000"
+const ADDR = ":8001"
 
 var trafficCtrl = traffic.NewIPRateControl(1, 1)
 
@@ -27,7 +28,11 @@ func main() {
 }
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
-	rl := trafficCtrl.GetLimiter(r.RemoteAddr)
+	ip, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		http.Error(w, "internal issue", http.StatusInternalServerError)
+	}
+	rl := trafficCtrl.GetLimiter(ip)
 	if !rl.Allow() {
 		http.Error(w, http.StatusText(http.StatusTooManyRequests), http.StatusTooManyRequests)
 		log.Println(">>> Rejecting with", http.StatusTooManyRequests)
