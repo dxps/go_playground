@@ -1,0 +1,4 @@
+github.com/domodwyer/mailyak/v3 v3.3.1 h1:d6IxQog4xN8SzjIRc3QkqBbG4jQzJAtSLEETircHmxE=
+github.com/domodwyer/mailyak/v3 v3.3.1/go.mod h1:lOm/u9CyCVWHeaAmHIdF4RiKVxKUT/H5XX10lIKAL6c=
+github.com/joho/godotenv v1.3.0 h1:Zjp+RcGpHhGlrMbJzXTrZZPrWj+1vfm90La1wgB6Bhc=
+github.com/joho/godotenv v1.3.0/go.mod h1:7hK45KPybAkOC6peb+G5yklZfMxEjkZhHbwpqxOKXbg=
