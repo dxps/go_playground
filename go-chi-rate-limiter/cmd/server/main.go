@@ -11,7 +11,7 @@ import (
 
 const ADDR = ":8001"
 
-var trafficCtrl = traffic.NewIPRateControl(1, 1)
+var trafficCtrl = traffic.NewIPRateControl(0.5, 1)
 
 func main() {
 
