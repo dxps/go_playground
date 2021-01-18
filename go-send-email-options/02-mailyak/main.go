@@ -12,8 +12,9 @@ import (
 type Config struct {
 	smtpUsername string
 	smtpPassword string
-	from         string
-	to           string
+	from         string // email address of the sender
+	fromName     string // name of the sender
+	to           string // email address of the recipient
 }
 
 func main() {
@@ -41,6 +42,7 @@ func main() {
 	}
 
 	mail.From(cfg.from)
+	mail.FromName(cfg.fromName)
 	mail.To(cfg.to)
 	mail.Subject(msgSubject)
 	_, err = mail.HTML().Write([]byte(msgBody))
@@ -60,6 +62,7 @@ func loadConfig() (*Config, error) {
 		smtpUsername: os.Getenv("SMTP_USERNAME"),
 		smtpPassword: os.Getenv("SMTP_PASSWORD"),
 		from:         os.Getenv("FROM"),
+		fromName:     os.Getenv("FROM_NAME"),
 		to:           os.Getenv("TO"),
 	}
 	return &cfg, nil
