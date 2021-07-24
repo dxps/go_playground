@@ -25,7 +25,10 @@ func main() {
 	recipes = make([]Recipe, 0)
 
 	router := gin.Default()
+
 	router.POST("/recipes", newRecipeHandler)
+	router.GET("/recipes", listRecipesHandler)
+
 	log.Print("Starting up ...")
 	_ = router.Run()
 }
@@ -40,4 +43,8 @@ func newRecipeHandler(c *gin.Context) {
 	recipe.PublishedAt = time.Now()
 	recipes = append(recipes, recipe)
 	c.JSON(http.StatusOK, recipe)
+}
+
+func listRecipesHandler(c *gin.Context) {
+	c.JSON(http.StatusOK, recipes)
 }
