@@ -14,6 +14,8 @@ To export it in the current shell (and have it visibile in any child shell) use:
 export GOOGLE_APPLICATION_CREDENTIALS=/path/to/gcp-service-account.json
 ```
 
+<br/>
+
 ### Usage
 
 First of all, as mentioned before, both producer and subscriber need to get the service account credentials.
