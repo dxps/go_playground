@@ -10,7 +10,7 @@ ignored_folders:
 included_extensions:
 - .go
 build_target_path: ""
-build_path: /var/folders/hs/gfmgq_d13zg4svxrdsry_txc0000gn/T/
+build_path: /tmp/jokeyish-gin_refresh
 build_flags: []
 build_delay: 200ns
 binary_name: refresh-build
