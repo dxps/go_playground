@@ -43,6 +43,7 @@ func (a *HttpApi) addSecretHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	w.Header().Add("Content-Type", "application/json")
 	_, _ = w.Write(respData)
 }
 
@@ -73,5 +74,6 @@ func (a *HttpApi) getSecretHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	w.Header().Add("Content-Type", "application/json")
 	_, _ = w.Write(respData)
 }
