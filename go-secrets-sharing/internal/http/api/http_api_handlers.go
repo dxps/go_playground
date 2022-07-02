@@ -25,17 +25,26 @@ func (a *HttpApi) addSecretHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusBadRequest)
 	}
+
 	rBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		log.Errorf("Request body read error: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 	}
+
 	var input AddSecretInput
 	if err := json.Unmarshal(rBody, &input); err != nil {
 		log.Errorf("Json unmarshall of input error: %v", err)
 		w.WriteHeader(http.StatusBadRequest)
 	}
-	hash := a.secrets.Store(input.PlainText)
+
+	hash, err := a.secrets.Store(input.PlainText)
+	if err != nil {
+		log.Errorf("[secretsHandler] Store error: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	respBody := NewAddSecretOutput(hash)
 	respData, err := json.Marshal(respBody)
 	if err != nil {
@@ -52,6 +61,7 @@ func (a *HttpApi) getSecretHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		w.WriteHeader(http.StatusBadRequest)
 	}
+
 	hash := strings.TrimPrefix(r.URL.Path, "/secrets/")
 	if len(strings.TrimSpace(hash)) == 0 {
 		w.WriteHeader(http.StatusBadRequest)

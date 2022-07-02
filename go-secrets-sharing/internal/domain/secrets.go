@@ -18,10 +18,12 @@ func NewSecrets(repo *repo.Repo) *Secrets {
 }
 
 // `Store` persists the plaintext secret and return the MD5 hash of it.
-func (s *Secrets) Store(plainSecret string) string {
+func (s *Secrets) Store(plainSecret string) (string, errors.AppError) {
 	sh := s.getMD5Hash(plainSecret)
-	s.repo.Add(sh, plainSecret)
-	return sh
+	if err := s.repo.Add(sh, plainSecret); err != nil {
+		return "", err
+	}
+	return sh, nil
 }
 
 // `Retrieve` retrieves the associated secret, if exists.
