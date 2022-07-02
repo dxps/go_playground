@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/dxps/go_playground/go-secrets-sharing/internal/errors"
+	"github.com/dxps/go_playground/go-secrets-sharing/internal/apperrs"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -69,7 +69,7 @@ func (a *HttpApi) getSecretHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	secret, err := a.secrets.Retrieve(hash)
 	if err != nil {
-		if err == errors.EntryNotFound {
+		if err == apperrs.ErrEntryNotFound {
 			w.WriteHeader(http.StatusNotFound)
 		} else {
 			log.Errorf("[getSecretHandler] Got error: %v", err)
