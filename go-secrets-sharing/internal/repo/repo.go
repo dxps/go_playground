@@ -29,7 +29,7 @@ func NewRepo(dataFilePath string) (*Repo, error) {
 	}
 	var memstore map[string]string
 	if fileExists {
-		data, err := loadFromFile(dataFilePath)
+		data, err := loadFromFile(file)
 		if err != nil {
 			return nil, err
 		}
@@ -49,28 +49,22 @@ func initFilestore(filePath string) (file *os.File, fileExists bool, err error) 
 		}
 		return file, false, nil
 	}
-	file, err = os.OpenFile(filePath, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+	file, err = os.OpenFile(filePath, os.O_RDWR, 0600)
 	fileExists = true
 	return
 }
 
-func loadFromFile(filePath string) (map[string]string, error) {
+func loadFromFile(f *os.File) (map[string]string, error) {
 
-	f, err := os.Open(filePath)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-
-	res := make(map[string]string, 0)
+	res := make(map[string]string, 1)
 	var entry dataEntry
 	sc := bufio.NewScanner(f)
 	for sc.Scan() {
-		err := json.Unmarshal(sc.Bytes(), &entry)
+		err := json.Unmarshal([]byte(sc.Text()), &entry)
 		if err != nil {
 			return nil, err
 		}
-		res[entry.ID] = entry.Secret
+		res[entry.Key] = entry.Value
 	}
 	return res, nil
 }
@@ -81,21 +75,18 @@ func (r *Repo) Add(hash, secret string) error {
 		return nil
 	}
 	r.memstore[hash] = secret
-	return r.filestore.Append(&dataEntry{
-		ID:     hash,
-		Secret: secret,
-	})
+	return r.filestore.Append(hash, secret)
 }
 
 func (r *Repo) GetAndRemove(hash string) (secret string, err errors.AppError) {
 
 	if val, exists := r.memstore[hash]; exists {
 		delete(r.memstore, hash)
+		r.filestore.Flush(r.memstore)
 		return val, nil
 	} else {
 		return "", errors.EntryNotFound
 	}
-	// TODO: Persist the change on disk by overwriting the file.
 }
 
 // --------------------------------------
@@ -104,28 +95,52 @@ func (r *Repo) GetAndRemove(hash string) (secret string, err errors.AppError) {
 
 type fileStore struct {
 	filePath string      // Path to the file.
-	file     *os.File    // Opened (append only, for minimal efficiency on adding secrets) file handle.
-	mu       *sync.Mutex // Synchronization primitive.
+	file     *os.File    // Open file handle.
+	mu       *sync.Mutex // File write synchronization primitive.
 }
 
 type dataEntry struct {
-	ID     string `json:"id"`
-	Secret string `json:"data"`
+	Key   string `json:"k"`
+	Value string `json:"v"`
 }
 
-func (fs *fileStore) Append(entry *dataEntry) error {
+func (fs *fileStore) Append(key, val string) error {
 
 	fs.mu.Lock()
 	defer fs.mu.Unlock()
 
-	bs, err := json.Marshal(entry)
+	if err := fs.writeEntry(key, val); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (fs *fileStore) Flush(data map[string]string) error {
+
+	fs.mu.Lock()
+	defer fs.mu.Unlock()
+
+	if err := fs.file.Truncate(0); err != nil {
+		return err
+	}
+	if _, err := fs.file.Seek(0, 0); err != nil {
+		return err
+	}
+	for k, v := range data {
+		if err := fs.writeEntry(k, v); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (fs *fileStore) writeEntry(key, val string) error {
+
+	bs, err := json.Marshal(dataEntry{Key: key, Value: val})
 	if err != nil {
 		return err
 	}
 	bs = append(bs, 10) // Adding new line character.
 	_, err = fs.file.Write(bs)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
