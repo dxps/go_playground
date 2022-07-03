@@ -98,7 +98,7 @@ func Test_addSecretHandler(t *testing.T) {
 	}
 }
 
-func Test_getSecretHandler_no_id_provided_(t *testing.T) {
+func Test_getSecretHandler(t *testing.T) {
 
 	// Setup
 	f, a, err := setup()
