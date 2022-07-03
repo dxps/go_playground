@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"reflect"
 	"testing"
 
 	"github.com/dxps/go_playground/go-secrets-sharing/internal/domain"
@@ -71,6 +72,8 @@ func Test_addSecretHandler(t *testing.T) {
 		t.Fatalf("Setup of the test failed: %v", err)
 	}
 
+	// TODO: Extend testing with multiple cases, based on the same Table Driven Tests approach.
+
 	inp := AddSecretInput{PlainText: "snap1"}
 	exp := AddSecretOutput{ID: "57c3c3e8874431efd7ae79a8972bdfd4"}
 	rBody, _ := json.Marshal(inp)
@@ -107,28 +110,78 @@ func Test_getSecretHandler(t *testing.T) {
 		t.Fatalf("Setup of the test failed: %v", err)
 	}
 
-	r := httptest.NewRequest(http.MethodGet, "http://localhost/secrets/", nil)
+	// Adding a secret first, before getting it.
+	inp := AddSecretInput{PlainText: "snap1"}
+	rBody, _ := json.Marshal(inp)
+	body := bytes.NewBuffer(rBody)
+	r := httptest.NewRequest(http.MethodPost, "http://localhost/secrets", body)
 	w := httptest.NewRecorder()
+	a.addSecretHandler(w, r)
 
 	// Execute
-	a.getSecretHandler(w, r)
 
-	// Evaluate
-
-	if exp, got := http.StatusBadRequest, w.Result().StatusCode; exp != got {
-		t.Fatalf("On status code, expected %d, got %d", exp, got)
+	testcases := []struct {
+		description     string
+		requestMethod   string
+		requestURLPath  string
+		expResponseCode int
+		expResponseBody any
+	}{
+		{
+			description:     "When wrong (not GET) HTTP method",
+			requestMethod:   http.MethodPost,
+			requestURLPath:  "http://localhost/secrets/{not-relevant}",
+			expResponseCode: http.StatusBadRequest,
+			expResponseBody: nil,
+		},
+		{
+			description:     "When no ID provided",
+			requestMethod:   http.MethodGet,
+			requestURLPath:  "http://localhost/secrets/",
+			expResponseCode: http.StatusBadRequest,
+			expResponseBody: ResponseError{Error: "ID (part of '/secrets/{ID}' URL path) is missing."},
+		},
+		{
+			description:     "When correct (previously added) ID provided",
+			requestMethod:   http.MethodGet,
+			requestURLPath:  "http://localhost/secrets/57c3c3e8874431efd7ae79a8972bdfd4", // ID corresponding to "snap1" secret.
+			expResponseCode: http.StatusOK,
+			expResponseBody: NewGetSecretOutput("snap1"),
+		},
 	}
 
-	respBody, err := io.ReadAll(w.Body)
-	if err != nil {
-		t.Fatalf("Could not process response: %v", err)
-	}
-	got, err := NewResponseErrorFromBytes(respBody)
-	if err != nil {
-		t.Fatalf("Could not unmarshal response: %v", err)
-	}
-	exp := ResponseError{Error: "ID (the param, part of '/secrets/{ID}' URL path) is missing."}
-	if exp != *got {
-		t.Fatalf("On response body, expected %v, got %v", exp, *got)
+	for _, tc := range testcases {
+		r := httptest.NewRequest(tc.requestMethod, tc.requestURLPath, nil)
+		w := httptest.NewRecorder()
+
+		// Execute
+		a.getSecretHandler(w, r)
+
+		// Evaluate
+		if tc.expResponseCode != w.Result().StatusCode {
+			t.Fatalf(fmt.Sprintf("%s: on status code expected %d, got %d", tc.description, tc.expResponseCode, w.Result().StatusCode))
+		}
+
+		if tc.expResponseBody == nil {
+			// It's not part of the test, so let's continue with the next test.
+			continue
+		}
+		var got any
+		var err error
+		switch rbt := tc.expResponseBody.(type) {
+		case ResponseError:
+			got, err = NewResponseErrorFromBytes(w.Body.Bytes())
+		case GetSecretOutput:
+			got, err = NewGetSecretOutputFromBytes(w.Body.Bytes())
+		default:
+			t.Fatalf("Got unexpected '%v' as response body type", rbt)
+		}
+
+		if err != nil {
+			t.Fatalf(fmt.Sprintf("%s: failed to unmarshal response body: %v", tc.description, err))
+		}
+		if reflect.DeepEqual(tc.expResponseBody, got) {
+			t.Fatalf(fmt.Sprintf("%s: on body expected %v, got %v", tc.description, tc.expResponseBody, got))
+		}
 	}
 }

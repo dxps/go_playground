@@ -59,7 +59,7 @@ func (a *HttpApi) getSecretHandler(w http.ResponseWriter, r *http.Request) {
 
 	hash := strings.TrimPrefix(r.URL.Path, "/secrets/")
 	if len(strings.TrimSpace(hash)) == 0 {
-		a.respondError(w, fmt.Sprintf("ID (the param, part of '/secrets/{ID}' URL path) is missing."), http.StatusBadRequest)
+		a.respondError(w, fmt.Sprintf("ID (part of '/secrets/{ID}' URL path) is missing."), http.StatusBadRequest)
 		return
 	}
 	secret, err := a.secrets.Retrieve(hash)
