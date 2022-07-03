@@ -2,9 +2,8 @@ package api
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
-
-	log "github.com/sirupsen/logrus"
 )
 
 func (a *HttpApi) respondJSON(w http.ResponseWriter, data any, status int, headers ...http.Header) {
@@ -24,15 +23,11 @@ func (a *HttpApi) respondJSON(w http.ResponseWriter, data any, status int, heade
 
 func (a *HttpApi) respondError(w http.ResponseWriter, err string, status ...int) {
 
-	log.Error(err)
+	log.Printf("Error: %v\n", err)
 	respStatus := http.StatusInternalServerError
 	if len(status) > 0 {
 		respStatus = status[0]
 	}
-	payload := struct {
-		Error string `json:"error"`
-	}{
-		Error: err,
-	}
-	a.respondJSON(w, payload, respStatus)
+	body := ResponseError{Error: err}
+	a.respondJSON(w, body, respStatus)
 }

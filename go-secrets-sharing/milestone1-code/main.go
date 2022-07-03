@@ -1,17 +1,17 @@
 package main
 
 import (
+	"log"
 	"os"
 
 	"github.com/dxps/go_playground/go-secrets-sharing/internal/domain"
 	"github.com/dxps/go_playground/go-secrets-sharing/internal/http/api"
 	"github.com/dxps/go_playground/go-secrets-sharing/internal/repo"
-	log "github.com/sirupsen/logrus"
 )
 
-// The default file used for persisting the 'memstore' to disk,
-// if no custom value has been defined as an environment variable.
-var DATA_FILE_PATH = "./secrets.data"
+// The default file path used for persisting the 'memstore' to disk,
+// if no custom value is provided as DATA_FILE_PATH environment variable.
+var DATA_FILE_PATH = "./secrets"
 
 func main() {
 

@@ -1,10 +1,10 @@
 package api
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/dxps/go_playground/go-secrets-sharing/internal/domain"
-	log "github.com/sirupsen/logrus"
 )
 
 const httpAddress = ":9001"
@@ -28,6 +28,6 @@ func NewHttpApi(secrets *domain.Secrets) HttpApi {
 
 func (a *HttpApi) Start() {
 
-	log.Infof("Starting listening on %v ...", httpAddress)
+	log.Printf("Starting listening on %v ...\n", httpAddress)
 	log.Fatalf("Error in http.ListenAndServe: %v", http.ListenAndServe(httpAddress, a.server))
 }

@@ -19,3 +19,7 @@ type GetSecretOutput struct {
 func NewGetSecretOutput(data string) *GetSecretOutput {
 	return &GetSecretOutput{data}
 }
+
+type ResponseError struct {
+	Error string `json:"error"`
+}
