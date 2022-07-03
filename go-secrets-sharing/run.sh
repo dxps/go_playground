@@ -1,4 +1,4 @@
 #!/bin/sh
 
-go run main.go
+DATA_FILE_PATH=./secrets go run main.go
 

@@ -1,4 +1,4 @@
 
-## The default file name, if no DATA_FILE_PATH is provided as env var.
+## The file names, used in run.sh script or if no DATA_FILE_PATH is provided as env var.
 secrets.data
-
+secrets
