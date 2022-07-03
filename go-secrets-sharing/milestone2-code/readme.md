@@ -24,3 +24,8 @@ The following HTTP API operations are implemented:
 The added secrets are stored in memory and persisted on disk, thus have them available across restarts: at startup, it loads into memory the entries from the file.
 
 The path to the secrets file can be specified using the `DATA_FILE_PATH` environment variable. See an example in the `run.sh` script. If this variable is not defined, then the default value of `./secrets.data` is used.
+
+### Tests
+
+This 2nd milestone includes some unit tests.
+Use `go test -count=1 -v ./...` to rn them all (at any time, no test result is cached as instructed by `-count=1` flag).

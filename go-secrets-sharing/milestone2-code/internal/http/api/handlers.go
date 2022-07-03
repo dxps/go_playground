@@ -13,7 +13,7 @@ import (
 func (a *HttpApi) healthcheckHandler(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method != http.MethodGet {
-		a.respondError(w, fmt.Sprintf("Only GET method can be used."), http.StatusBadRequest)
+		a.respondError(w, "Only GET method can be used.", http.StatusBadRequest)
 		return
 	}
 	// Blindly respond OK, for now.
@@ -23,7 +23,7 @@ func (a *HttpApi) healthcheckHandler(w http.ResponseWriter, r *http.Request) {
 func (a *HttpApi) addSecretHandler(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method != http.MethodPost {
-		a.respondError(w, fmt.Sprintf("Only POST method can be used."), http.StatusBadRequest)
+		a.respondError(w, "Only POST method can be used.", http.StatusBadRequest)
 		return
 	}
 
@@ -47,19 +47,18 @@ func (a *HttpApi) addSecretHandler(w http.ResponseWriter, r *http.Request) {
 
 	respBody := NewAddSecretOutput(hash)
 	a.respondJSON(w, respBody, http.StatusOK)
-	return
 }
 
 func (a *HttpApi) getSecretHandler(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method != http.MethodGet {
-		a.respondError(w, fmt.Sprintf("Only GET method can be used."), http.StatusBadRequest)
+		a.respondError(w, "Only GET method can be used.", http.StatusBadRequest)
 		return
 	}
 
 	hash := strings.TrimPrefix(r.URL.Path, "/secrets/")
 	if len(strings.TrimSpace(hash)) == 0 {
-		a.respondError(w, fmt.Sprintf("ID (part of '/secrets/{ID}' URL path) is missing."), http.StatusBadRequest)
+		a.respondError(w, "ID (part of '/secrets/{ID}' URL path) is missing.", http.StatusBadRequest)
 		return
 	}
 	secret, err := a.secrets.Retrieve(hash)
