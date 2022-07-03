@@ -29,3 +29,11 @@ The path to the secrets file can be specified using the `DATA_FILE_PATH` environ
 
 This 2nd milestone includes some unit tests.
 Use `go test -count=1 -v ./...` to rn them all (at any time, no test result is cached as instructed by `-count=1` flag).
+
+If you use VSCode and you prefer to use [Go Test Explorer](https://marketplace.visualstudio.com/items?itemName=premparihar.gotestexplorer) extension, you can also disable the cached test results by adding to `settings.json` the following:
+```json
+"go.testFlags": [
+    "-count=1"
+],
+```
+Of course, if you also want to get what's printed to the console during the tests, include `"-v"` as another item to that setting array.
