@@ -29,12 +29,12 @@ Failed to create pubsub client: pubsub(publisher): google: could not find defaul
 
 Then start the subscriber:
 ```shell
-go run cmd/subcriber/main.go -p your-existing-project-id -t your-existing-topic -s your-existing-subscription
+go run cmd/subscriber/main.go -p your-existing-project-id -t your-existing-topic-id -s your-existing-subscription
 ```
 
 And start the producer:
 ```shell
-go run cmd/producer/main.go -p your-existing-project-id -t your-existing-topic
+go run cmd/producer/main.go -p your-existing-project-id -t your-existing-topic-id
 ```
 
 You should see both sides (production and consumption) showing off their parts.

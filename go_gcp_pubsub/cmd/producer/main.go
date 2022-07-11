@@ -15,8 +15,8 @@ func main() {
 
 	projectID, topicID := "", ""
 
-	flag.StringVarP(&projectID, "projectID", "p", "some-project", "ID of the GCP project")
-	flag.StringVarP(&topicID, "topicID", "t", "test-topic", "name of the topic")
+	flag.StringVarP(&projectID, "projectID", "p", "some-project", "project ID")
+	flag.StringVarP(&topicID, "topicID", "t", "test-topic", "topic ID")
 
 	flag.Parse()
 
@@ -24,7 +24,7 @@ func main() {
 
 	client, err := client.InitClient(projectID)
 	if err != nil {
-		log.Fatalf("Failed to create pubsub client: %v", err)
+		log.Fatalf("Failed to create PubSub client: %v", err)
 	}
 
 	topic, err := topic.InitTopic(client, topicID)
@@ -36,7 +36,7 @@ func main() {
 		SomeTestID   int    `json:"someTestID"`
 		SomeTestName string `json:"someTestName"`
 	}{
-		SomeTestName: "marile-test",
+		SomeTestName: "marile testing",
 	}
 
 	// Publishing two messages.
