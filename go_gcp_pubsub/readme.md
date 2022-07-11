@@ -6,10 +6,10 @@ This is a basic sample to test the behaviour of GCP's Pub/Sub producing and cons
 
 ### The Service Account
 
-To use it, you need to have a _GCP Service Account_ with the appropriate Pub/Sub roles.
+To use it, you need to have a _GCP Service Account_ with the appropriate Pub/Sub roles.<br/>
 And pass to the sample a reference to the JSON file that contains the private key.
 
-To export it in the current shell (and have it visibile in any child shell) use:
+To export it in the current shell (to have it visibile in any child shell) use:
 ```shell
 export GOOGLE_APPLICATION_CREDENTIALS=/path/to/gcp-service-account.json
 ```
@@ -34,9 +34,9 @@ go run cmd/subcriber/main.go -p your-existing-project-id -t your-existing-topic 
 
 And start the producer:
 ```shell
-go run cmd/subcriber/main.go -p your-existing-project-id -t your-existing-topic
+go run cmd/producer/main.go -p your-existing-project-id -t your-existing-topic
 ```
 
-You should see both sides (producer's production and subscriber's consumption) showing off their parts.
+You should see both sides (production and consumption) showing off their parts.
 
 <br/>
