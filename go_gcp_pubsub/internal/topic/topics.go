@@ -7,13 +7,13 @@ import (
 	"cloud.google.com/go/pubsub"
 )
 
-func InitTopic(c *pubsub.Client, name string) (*pubsub.Topic, error) {
+func InitTopic(c *pubsub.Client, topicID string) (*pubsub.Topic, error) {
 
 	ctx := context.Background()
-	t := c.Topic(name)
+	t := c.Topic(topicID)
 	ok, err := t.Exists(ctx)
 	if !ok {
-		return nil, fmt.Errorf("Topic '%s' does not exist.", name)
+		return nil, fmt.Errorf("Topic '%s' does not exist or it's not accessible.", topicID)
 	} else if err != nil {
 		return nil, err
 	}
