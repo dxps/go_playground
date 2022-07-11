@@ -36,7 +36,7 @@ func ReceiveMessages(sub *pubsub.Subscription) error {
 	err := sub.Receive(ctx, func(ctx context.Context, msg *pubsub.Message) {
 		mu.Lock()
 		defer mu.Unlock()
-		log.Printf("Got message: %q\n", string(msg.Data))
+		log.Printf("Got '%q' with id %s.\n", string(msg.Data), msg.ID)
 		msg.Ack()
 		received++
 	})

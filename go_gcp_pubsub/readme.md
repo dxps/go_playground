@@ -1,13 +1,13 @@
-## GCP Pub/Sub
+# Some GCP Pub/Sub Samples & Tests
 
 This is a basic sample to test the behaviour of GCP's Pub/Sub producing and consuming (receiving from subscription) messages.
 
 <br/>
 
-### The Service Account
+## Setup
 
-To use it, you need to have a _GCP Service Account_ with the appropriate Pub/Sub roles.<br/>
-And pass to the sample a reference to the JSON file that contains the private key.
+To use it, you need to have a _GCP Service Account_ with the appropriate Pub/Sub roles, such as `Pub/Sub Admin`.<br/>
+Create a service account key with type JSON, download the generated file and set `GOOGLE_APPLICATION_CREDENTIALS` as environment variable with the value of (full or relative) path to that JSON file.
 
 To export it in the current shell (to have it visibile in any child shell) use:
 ```shell
@@ -18,25 +18,22 @@ export GOOGLE_APPLICATION_CREDENTIALS=/path/to/gcp-service-account.json
 
 ### Usage
 
-First of all, as mentioned before, both producer and subscriber need to get the service account credentials.
-Just use that `export GOOGLE_APPLICATION_CREDENTIALS` or make sure `GOOGLE_APPLICATION_CREDENTIALS` exists as an environment variable.
-
-Otherwise, the startup will fail with:
+Remember that both producer and subscriber need to get access to a service account credentials (key) through the aforementioned environment variable. Otherwise, at startup it will fail with:
 ```
 Failed to create pubsub client: pubsub(publisher): google: could not find default credentials. See https://developers.google.com/accounts/docs/application-default-credentials for more information.
 ```
 
 
-Then start the subscriber:
+Start the subscriber:
 ```shell
-go run cmd/subscriber/main.go -p your-existing-project-id -t your-existing-topic-id -s your-existing-subscription
+go run cmd/standard/subscriber/main.go -p {project-id} -t {topic-id} -s {subscription-id}
 ```
 
-And start the producer:
+Start the producer:
 ```shell
-go run cmd/producer/main.go -p your-existing-project-id -t your-existing-topic-id
+go run cmd/standard/producer/main.go -p {project-id} -t {topic-id}
 ```
 
-You should see both sides (production and consumption) showing off their parts.
+You should see both sides (production and consumption) showing off their parts. The order is not that important though.
 
 <br/>

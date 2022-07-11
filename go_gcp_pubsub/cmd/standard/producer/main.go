@@ -51,7 +51,7 @@ func main() {
 		if err != nil {
 			log.Fatalf("Failed to publish: %v", err)
 		}
-		log.Printf("Published %+v as msg with ID: %s", obj, msgID)
+		log.Printf("Published '%+v' with id %s.", obj, msgID)
 	}
 
 }
