@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	tuple "github.com/barweiss/go-tuple"
 	flag "github.com/spf13/pflag"
 
 	"github.com/dxps/go_playground_go_gcp_pubsub/internal/client"
@@ -38,6 +39,9 @@ func main() {
 		log.Fatalf("Failed to use topic: %v", err)
 	}
 
+	// Enabling the message ordering at the topic level.
+	topic.EnableMessageOrdering = true
+
 	obj := struct {
 		SomeTestID   string `json:"someTestID"`
 		SomeTestName string `json:"someTestName"`
@@ -48,11 +52,11 @@ func main() {
 	var wg sync.WaitGroup
 	idChan := make(chan string, eventsCount)
 	errChan := make(chan error, eventsCount)
-	msgs := make([][]byte, 0)
 
 	ctx := context.Background()
 	start := time.Now()
 	sid := start.Nanosecond()
+	msgs := make([]tuple.T2[string, []byte], 0)
 
 	log.Println("Preparing the messages ...")
 	for n := 0; n < eventsCount; n++ {
@@ -63,14 +67,13 @@ func main() {
 		if err != nil {
 			log.Fatalf("Failed to marshal object: %v", err)
 		}
-		msgs = append(msgs, data)
+		msgs = append(msgs, tuple.New2(id, data))
 	}
 
 	log.Println("Starting the publishing ...")
-
 	for n := 0; n < eventsCount; n++ {
 
-		publish.PublishBytesAsyncRes(ctx, topic, msgs[n], &wg, idChan, errChan)
+		publish.PublishBytesWithOrderingAsyncRes(ctx, topic, msgs[n].V2, msgs[n].V1, &wg, idChan, errChan)
 		if err != nil {
 			log.Fatalf("Failed to publish msg: %v due to: %v", msgs[n], err)
 		}
@@ -78,6 +81,6 @@ func main() {
 
 	wg.Wait()
 	duration := time.Since(start)
-	log.Printf("Publishing %d events took %v\n", eventsCount, duration)
+	log.Printf("Publishing %d events in order took %v\n", eventsCount, duration)
 
 }

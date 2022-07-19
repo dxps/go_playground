@@ -29,11 +29,29 @@ Start the subscriber:
 go run cmd/standard/subscriber/main.go -p {project-id} -t {topic-id} -s {subscription-id}
 ```
 
-Start the producer:
-```shell
-go run cmd/standard/producer/main.go -p {project-id} -t {topic-id}
-```
+Start the producer to publish:
+1. In the standard way by running `go run cmd/standard/producer/main.go -p {project-id} -t {topic-id} -e {number-of-events|default=10}`
+2. Using ordered way by running `go run cmd/ordering/producer/ordering_producer.go -p {project-id} -t {topic-id} -e {number-of-events|default=10}`
 
 You should see both sides (production and consumption) showing off their parts. The order is not that important though.
+
+<br/>
+
+### Stats
+
+The followings represents just some execution snapshots while publishing just 1000 messages.
+
+| number of events (eventCount) | operation & type   | duration     |
+| ----------------------------- | ------------------ | ------------ |
+| 1_000                         | published in order | 252.701501ms |
+| 1_000                         | published standard | 225.168448ms |
+
+
+<br/>
+
+### Todos
+
+The _async result_ design must be improved as trying to publish 1M messages would probably take longer than the synchronous way
+due to spawning too many goroutines. To be evaluated ...
 
 <br/>
