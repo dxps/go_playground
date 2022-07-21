@@ -1,4 +1,4 @@
-package subscription
+package consume
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/pubsub"
+	"github.com/dxps/go_playground_go_gcp_pubsub/internal/data"
 )
 
 func CreateSubscription(c *pubsub.Client, topic *pubsub.Topic, subID string) (*pubsub.Subscription, error) {
@@ -32,11 +33,25 @@ func ReceiveMessages(sub *pubsub.Subscription) error {
 
 	var mu sync.Mutex
 	received := 0
+	var currID uint
 	ctx := context.Background()
 	err := sub.Receive(ctx, func(ctx context.Context, msg *pubsub.Message) {
 		mu.Lock()
 		defer mu.Unlock()
-		log.Printf("Got '%q' with id %s.\n", string(msg.Data), msg.ID)
+		obj, err := data.NewMyDataFromBytes(msg.Data)
+		if err != nil {
+			log.Printf("Error on receive: %v", err)
+		} else {
+			log.Printf("Received objID: %d", obj.ID)
+			if currID == 0 {
+				currID = obj.ID
+			} else {
+				if currID != obj.ID-1 {
+					log.Printf("Got an unordered message: currID=%v objID=%v", currID, obj.ID)
+				}
+				currID = obj.ID
+			}
+		}
 		msg.Ack()
 		received++
 	})

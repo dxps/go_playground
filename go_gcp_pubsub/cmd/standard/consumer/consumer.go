@@ -6,7 +6,7 @@ import (
 	flag "github.com/spf13/pflag"
 
 	"github.com/dxps/go_playground_go_gcp_pubsub/internal/client"
-	"github.com/dxps/go_playground_go_gcp_pubsub/internal/subscription"
+	"github.com/dxps/go_playground_go_gcp_pubsub/internal/consume"
 	"github.com/dxps/go_playground_go_gcp_pubsub/internal/topic"
 )
 
@@ -16,7 +16,7 @@ func main() {
 
 	flag.StringVarP(&projectID, "projectID", "p", "some-project", "ID of the GCP project")
 	flag.StringVarP(&topicID, "topicID", "t", "test-topic", "name of the topic")
-	flag.StringVarP(&subscriptionID, "subscriptionID", "s", "example-subscription", "name of subcriber")
+	flag.StringVarP(&subscriptionID, "subscriptionID", "s", "test-subscription", "name of the subscription")
 
 	flag.Parse()
 
@@ -32,9 +32,9 @@ func main() {
 		log.Fatalf("Failed to use topic: %v", err)
 	}
 
-	sub := subscription.InitSubscription(client, topic, subscriptionID)
+	sub := consume.InitSubscription(client, topic, subscriptionID)
 
-	if err := subscription.ReceiveMessages(sub); err != nil {
+	if err := consume.ReceiveMessages(sub); err != nil {
 		log.Println(err)
 	}
 

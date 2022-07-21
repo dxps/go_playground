@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"log"
 	"sync"
 	"time"
@@ -11,18 +10,19 @@ import (
 	flag "github.com/spf13/pflag"
 
 	"github.com/dxps/go_playground_go_gcp_pubsub/internal/client"
-	"github.com/dxps/go_playground_go_gcp_pubsub/internal/publish"
+	"github.com/dxps/go_playground_go_gcp_pubsub/internal/data"
+	"github.com/dxps/go_playground_go_gcp_pubsub/internal/produce"
 	"github.com/dxps/go_playground_go_gcp_pubsub/internal/topic"
 )
 
 func main() {
 
 	projectID, topicID := "", ""
-	eventsCount := 0
+	eventsCount := uint(0)
 
 	flag.StringVarP(&projectID, "projectID", "p", "tbd-project-id", "The Project ID")
 	flag.StringVarP(&topicID, "topicID", "t", "tbd-topic-id", "The Topic ID")
-	flag.IntVarP(&eventsCount, "eventsCount", "e", 10, "Number of events to publish")
+	flag.UintVarP(&eventsCount, "eventsCount", "e", 10, "Number of events to publish")
 
 	flag.Parse()
 
@@ -38,12 +38,7 @@ func main() {
 		log.Fatalf("Failed to use topic: %v", err)
 	}
 
-	obj := struct {
-		SomeTestID   string `json:"someTestID"`
-		SomeTestName string `json:"someTestName"`
-	}{
-		SomeTestName: "testing",
-	}
+	obj := data.NewMyData()
 
 	var wg sync.WaitGroup
 	idChan := make(chan string, eventsCount)
@@ -52,12 +47,11 @@ func main() {
 
 	ctx := context.Background()
 	start := time.Now()
-	sid := start.Nanosecond()
+	sid := uint(start.Nanosecond())
 
 	log.Println("Preparing the messages ...")
-	for n := 0; n < eventsCount; n++ {
-		id := fmt.Sprint(sid + n)
-		obj.SomeTestID = id
+	for n := uint(0); n < eventsCount; n++ {
+		obj.ID = sid + n
 
 		data, err := json.Marshal(obj)
 		if err != nil {
@@ -68,9 +62,9 @@ func main() {
 
 	log.Println("Starting the publishing ...")
 
-	for n := 0; n < eventsCount; n++ {
+	for n := uint(0); n < eventsCount; n++ {
 
-		publish.PublishBytesAsyncRes(ctx, topic, msgs[n], &wg, idChan, errChan)
+		produce.PublishBytesAsyncRes(ctx, topic, msgs[n], &wg, idChan, errChan)
 		if err != nil {
 			log.Fatalf("Failed to publish msg: %v due to: %v", msgs[n], err)
 		}

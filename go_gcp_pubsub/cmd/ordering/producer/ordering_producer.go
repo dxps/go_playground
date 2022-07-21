@@ -12,7 +12,7 @@ import (
 	flag "github.com/spf13/pflag"
 
 	"github.com/dxps/go_playground_go_gcp_pubsub/internal/client"
-	"github.com/dxps/go_playground_go_gcp_pubsub/internal/publish"
+	"github.com/dxps/go_playground_go_gcp_pubsub/internal/produce"
 	"github.com/dxps/go_playground_go_gcp_pubsub/internal/topic"
 )
 
@@ -73,7 +73,7 @@ func main() {
 	log.Println("Starting the publishing ...")
 	for n := 0; n < eventsCount; n++ {
 
-		publish.PublishBytesWithOrderingAsyncRes(ctx, topic, msgs[n].V2, msgs[n].V1, &wg, idChan, errChan)
+		produce.PublishBytesWithOrderingAsyncRes(ctx, topic, msgs[n].V2, msgs[n].V1, &wg, idChan, errChan)
 		if err != nil {
 			log.Fatalf("Failed to publish msg: %v due to: %v", msgs[n], err)
 		}
