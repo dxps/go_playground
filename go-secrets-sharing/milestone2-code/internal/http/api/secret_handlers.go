@@ -13,7 +13,7 @@ import (
 func (a *HttpApi) addSecretHandler(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method != http.MethodPost {
-		a.respondError(w, "Only POST method can be used.", http.StatusBadRequest)
+		a.respondError(w, "Only POST method can be used.", http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -42,7 +42,7 @@ func (a *HttpApi) addSecretHandler(w http.ResponseWriter, r *http.Request) {
 func (a *HttpApi) getSecretHandler(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method != http.MethodGet {
-		a.respondError(w, "Only GET method can be used.", http.StatusBadRequest)
+		a.respondError(w, "Only GET method can be used.", http.StatusMethodNotAllowed)
 		return
 	}
 
