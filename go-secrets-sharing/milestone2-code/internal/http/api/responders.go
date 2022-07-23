@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 )
 
@@ -23,7 +22,9 @@ func (a *HttpApi) respondJSON(w http.ResponseWriter, data any, status int, heade
 
 func (a *HttpApi) respondError(w http.ResponseWriter, err string, status ...int) {
 
-	log.Printf("Error: %v\n", err)
+	// Silent for now, maybe later with some logging verbosity control.
+	// log.Printf("Error: %v\n", err)
+
 	respStatus := http.StatusInternalServerError
 	if len(status) > 0 {
 		respStatus = status[0]

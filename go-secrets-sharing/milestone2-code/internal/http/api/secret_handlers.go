@@ -10,16 +10,6 @@ import (
 	"github.com/dxps/go_playground/go-secrets-sharing/internal/apperrs"
 )
 
-func (a *HttpApi) healthcheckHandler(w http.ResponseWriter, r *http.Request) {
-
-	if r.Method != http.MethodGet {
-		a.respondError(w, "Only GET method can be used.", http.StatusBadRequest)
-		return
-	}
-	// Blindly respond OK, for now.
-	w.WriteHeader(http.StatusOK)
-}
-
 func (a *HttpApi) addSecretHandler(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method != http.MethodPost {

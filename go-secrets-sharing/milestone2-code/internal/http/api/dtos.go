@@ -29,8 +29,8 @@ type GetSecretOutput struct {
 	Data string `json:"data"`
 }
 
-func NewGetSecretOutput(data string) GetSecretOutput {
-	return GetSecretOutput{data}
+func NewGetSecretOutput(data string) *GetSecretOutput {
+	return &GetSecretOutput{data}
 }
 
 func NewGetSecretOutputFromBytes(data []byte) (*GetSecretOutput, error) {
@@ -43,6 +43,10 @@ func NewGetSecretOutputFromBytes(data []byte) (*GetSecretOutput, error) {
 
 type ResponseError struct {
 	Error string `json:"error"`
+}
+
+func NewResponseError(err string) *ResponseError {
+	return &ResponseError{Error: err}
 }
 
 func NewResponseErrorFromBytes(data []byte) (*ResponseError, error) {
