@@ -1,6 +1,6 @@
 ## A Secrets Sharing App
 
-This is a simple secrets sharing web app written in Go, using the standard library and no external dependencies.
+This is a simple secrets sharing web app written in Go.
 
 ### Run
 
