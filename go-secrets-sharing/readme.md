@@ -1,5 +1,5 @@
 ## A Secrets Sharing App
 
-This is a simple secrets sharing web app written in Go, using the standard library and no external dependencies.
+This is a simple secrets sharing web app written in Go.
 
-`milestone{1|2}-code` folders represents iterations of delivery.
+`milestone{1|2|3}-code` folders represents iterations of delivery.
