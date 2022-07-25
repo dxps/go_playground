@@ -14,6 +14,7 @@ import (
 )
 
 func main() {
+
 	s := &Server{
 		ch: make(chan []byte, 2048),
 	}
@@ -110,6 +111,7 @@ func (s *Server) HandleCreate(w http.ResponseWriter, r *http.Request) {
 	throwAway := struct{}{}
 	err = json.Unmarshal(data, &throwAway)
 	if err != nil {
+		log.Printf("Unable to read POST body: %v", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -153,6 +155,7 @@ func (s *Server) HandleRetrieve(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// write value
+	w.Header().Add("content-type", "application/json")
 	if _, err := w.Write(data); err != nil {
 		log.Printf("unable to write response: %s\n", err.Error())
 	}
