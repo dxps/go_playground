@@ -19,14 +19,17 @@ func main() {
 
 	projectID, topicID := "", ""
 	eventsCount := uint(0)
+	delay := uint(0)
 
 	flag.StringVarP(&projectID, "projectID", "p", "tbd-project-id", "The Project ID")
 	flag.StringVarP(&topicID, "topicID", "t", "tbd-topic-id", "The Topic ID")
 	flag.UintVarP(&eventsCount, "eventsCount", "e", 10, "Number of events to publish")
+	flag.UintVarP(&delay, "delay", "d", 0, "Delay (in milliseconds) between publishing an event")
 
 	flag.Parse()
 
-	log.Printf("Using projectID: '%s', topicID: '%s'.", projectID, topicID)
+	log.Printf("Using projectID: '%s', topicID: '%s', publishing %d events at an interval of %d milliseconds.",
+		projectID, topicID, eventsCount, delay)
 
 	client, err := client.InitClient(projectID)
 	if err != nil {
@@ -64,6 +67,9 @@ func main() {
 
 	for n := uint(0); n < eventsCount; n++ {
 
+		if n > 0 {
+			time.Sleep(time.Duration(delay) * time.Millisecond)
+		}
 		produce.PublishBytesAsyncRes(ctx, topic, msgs[n], &wg, idChan, errChan)
 		if err != nil {
 			log.Fatalf("Failed to publish msg: %v due to: %v", msgs[n], err)

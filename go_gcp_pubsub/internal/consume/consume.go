@@ -43,14 +43,10 @@ func ReceiveMessages(sub *pubsub.Subscription) error {
 			log.Printf("Error on receive: %v", err)
 		} else {
 			log.Printf("Received objID: %d", obj.ID)
-			if currID == 0 {
-				currID = obj.ID
-			} else {
-				if currID != obj.ID-1 {
-					log.Printf("Got an unordered message: currID=%v objID=%v", currID, obj.ID)
-				}
-				currID = obj.ID
+			if currID != obj.ID-1 && currID != 0 {
+				log.Printf("Got an unordered message: current ID=%v got ID=%v", currID, obj.ID)
 			}
+			currID = obj.ID
 		}
 		msg.Ack()
 		received++
