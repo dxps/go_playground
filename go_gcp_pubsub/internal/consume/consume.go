@@ -24,6 +24,25 @@ func CreateSubscription(c *pubsub.Client, topic *pubsub.Topic, subID string) (*p
 	return sub, nil
 }
 
+func CreateSubscriptionWithOrdering(c *pubsub.Client, topic *pubsub.Topic, subID string) (*pubsub.Subscription, error) {
+
+	ctx := context.Background()
+	sub, err := c.CreateSubscription(ctx, subID, pubsub.SubscriptionConfig{
+		Topic:                 topic,
+		AckDeadline:           20 * time.Second,
+		EnableMessageOrdering: true,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return sub, nil
+}
+
+func isSubscriptionWithOrderingExists(c *pubsub.Client, subID string) (bool, bool) {
+	// TODO
+	return false, false
+}
+
 func InitSubscription(c *pubsub.Client, topic *pubsub.Topic, subID string) *pubsub.Subscription {
 
 	return c.Subscription(subID)
@@ -42,9 +61,11 @@ func ReceiveMessages(sub *pubsub.Subscription) error {
 		if err != nil {
 			log.Printf("Error on receive: %v", err)
 		} else {
-			log.Printf("Received objID: %d", obj.ID)
+
 			if currID != obj.ID-1 && currID != 0 {
-				log.Printf("Got an unordered message: current ID=%v got ID=%v", currID, obj.ID)
+				log.Printf("Received objID: %d <-- unordered (curr ID: %v)", obj.ID, currID)
+			} else {
+				log.Printf("Received objID: %d", obj.ID)
 			}
 			currID = obj.ID
 		}

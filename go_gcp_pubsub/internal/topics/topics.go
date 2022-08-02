@@ -1,15 +1,23 @@
-package topic
+package topics
 
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"cloud.google.com/go/pubsub"
 )
 
-func InitTopic(c *pubsub.Client, topicID string) (*pubsub.Topic, error) {
+func CreateTopic(c *pubsub.Client, topicID string) (*pubsub.Topic, error) {
 
 	ctx := context.Background()
+	return c.CreateTopic(ctx, topicID)
+}
+
+func InitTopic(c *pubsub.Client, topicID string) (*pubsub.Topic, error) {
+
+	ctx, cc := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cc()
 	t := c.Topic(topicID)
 	ok, err := t.Exists(ctx)
 	if !ok {

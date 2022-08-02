@@ -9,63 +9,77 @@ import (
 
 	flag "github.com/spf13/pflag"
 
-	"github.com/dxps/go_playground_go_gcp_pubsub/internal/client"
+	"github.com/dxps/go_playground_go_gcp_pubsub/internal/clients"
 	"github.com/dxps/go_playground_go_gcp_pubsub/internal/data"
+	"github.com/dxps/go_playground_go_gcp_pubsub/internal/endpoints"
 	"github.com/dxps/go_playground_go_gcp_pubsub/internal/produce"
-	"github.com/dxps/go_playground_go_gcp_pubsub/internal/topic"
+	"github.com/dxps/go_playground_go_gcp_pubsub/internal/topics"
 )
 
 func main() {
 
-	projectID, topicID := "", ""
-	eventsCount := uint(0)
+	projectID, topicID, endpoint := "", "", ""
+	numberOfEvents := uint(0)
 	delay := uint(0)
 
 	flag.StringVarP(&projectID, "projectID", "p", "tbd-project-id", "The Project ID")
 	flag.StringVarP(&topicID, "topicID", "t", "tbd-topic-id", "The Topic ID")
-	flag.UintVarP(&eventsCount, "eventsCount", "e", 10, "Number of events to publish")
+	flag.StringVarP(&endpoint, "endpoint", "e", endpoints.PUBSUB_GLOBAL_ENDPOINT, "The Pub/Sub service endpoint.")
+	flag.UintVarP(&numberOfEvents, "numberOfEvents", "n", 10, "Number of events to publish")
 	flag.UintVarP(&delay, "delay", "d", 0, "Delay (in milliseconds) between publishing an event")
 
 	flag.Parse()
 
-	log.Printf("Using projectID: '%s', topicID: '%s', publishing %d events at an interval of %d milliseconds.",
-		projectID, topicID, eventsCount, delay)
+	log.Printf(`Starting up using:
+	       endpoint: '%s'
+	     project ID: '%s'
+	       topic ID: '%s'
+     numberOfEvents: %d
+	          delay: %d
+	`, endpoint, projectID, topicID, numberOfEvents, delay)
 
-	client, err := client.InitClient(projectID)
+	log.Printf("Using projectID: '%s', topicID: '%s', publishing %d events at an interval of %d milliseconds.",
+		projectID, topicID, numberOfEvents, delay)
+
+	client, err := clients.InitClient(endpoint, projectID)
 	if err != nil {
 		log.Fatalf("Failed to create PubSub client: %v", err)
 	}
 
-	topic, err := topic.InitTopic(client, topicID)
+	topic, err := topics.InitTopic(client, topicID)
 	if err != nil {
-		log.Fatalf("Failed to use topic: %v", err)
+		log.Printf("Cannot use topic due to: %v", err)
+		log.Printf("Trying to create it...")
+		topic, err = topics.CreateTopic(client, topicID)
+		if err != nil {
+			log.Fatalf("Failed to use topic due to: %v. Existing now.", err)
+		}
 	}
 
-	obj := data.NewMyData()
-
 	var wg sync.WaitGroup
-	idChan := make(chan string, eventsCount)
-	errChan := make(chan error, eventsCount)
-	msgs := make([][]byte, 0)
+	idChan := make(chan string, numberOfEvents)
+	errChan := make(chan error, numberOfEvents)
+	msgs := make(map[uint][]byte, numberOfEvents)
 
 	ctx := context.Background()
 	start := time.Now()
 	sid := uint(start.Nanosecond())
 
 	log.Println("Preparing the messages ...")
-	for n := uint(0); n < eventsCount; n++ {
+	obj := data.NewMyData()
+	for n := uint(0); n < numberOfEvents; n++ {
 		obj.ID = sid + n
 
 		data, err := json.Marshal(obj)
 		if err != nil {
 			log.Fatalf("Failed to marshal object: %v", err)
 		}
-		msgs = append(msgs, data)
+		msgs[obj.ID] = data
 	}
 
 	log.Println("Starting the publishing ...")
 
-	for n := uint(0); n < eventsCount; n++ {
+	for n := uint(0); n < numberOfEvents; n++ {
 
 		if n > 0 {
 			time.Sleep(time.Duration(delay) * time.Millisecond)
@@ -78,6 +92,6 @@ func main() {
 
 	wg.Wait()
 	duration := time.Since(start)
-	log.Printf("Publishing %d events took %v\n", eventsCount, duration)
+	log.Printf("Publishing %d events took %v\n", numberOfEvents, duration)
 
 }

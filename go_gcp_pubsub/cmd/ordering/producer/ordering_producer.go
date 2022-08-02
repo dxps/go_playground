@@ -5,36 +5,44 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"sort"
 	"sync"
 	"time"
 
-	tuple "github.com/barweiss/go-tuple"
 	flag "github.com/spf13/pflag"
 
-	"github.com/dxps/go_playground_go_gcp_pubsub/internal/client"
+	"github.com/dxps/go_playground_go_gcp_pubsub/internal/clients"
+	"github.com/dxps/go_playground_go_gcp_pubsub/internal/data"
+	"github.com/dxps/go_playground_go_gcp_pubsub/internal/endpoints"
 	"github.com/dxps/go_playground_go_gcp_pubsub/internal/produce"
-	"github.com/dxps/go_playground_go_gcp_pubsub/internal/topic"
+	"github.com/dxps/go_playground_go_gcp_pubsub/internal/topics"
 )
 
 func main() {
 
-	projectID, topicID := "", ""
-	eventsCount := 0
+	var projectID, topicID, endpoint string
+	var numberOfEvents uint
 
 	flag.StringVarP(&projectID, "projectID", "p", "tbd-project-id", "The Project ID")
 	flag.StringVarP(&topicID, "topicID", "t", "tbd-topic-id", "The Topic ID")
-	flag.IntVarP(&eventsCount, "eventsCount", "e", 10, "Number of events to publish")
+	flag.StringVarP(&endpoint, "endpoint", "e", endpoints.PUBSUB_GLOBAL_ENDPOINT, "The Pub/Sub service endpoint.")
+	flag.UintVarP(&numberOfEvents, "numberOfEvents", "n", 10, "Number of events to publish")
 
 	flag.Parse()
 
-	log.Printf("Using projectID: '%s', topicID: '%s'.", projectID, topicID)
+	log.Printf(`Starting up using:
+	       endpoint: '%s'
+	     project ID: '%s'
+	       topic ID: '%s'
+	 numberOfEvents: %d
+	`, endpoint, projectID, topicID, numberOfEvents)
 
-	client, err := client.InitClient(projectID)
+	client, err := clients.InitClient(endpoint, projectID)
 	if err != nil {
 		log.Fatalf("Failed to create PubSub client: %v", err)
 	}
 
-	topic, err := topic.InitTopic(client, topicID)
+	topic, err := topics.InitTopic(client, topicID)
 	if err != nil {
 		log.Fatalf("Failed to use topic: %v", err)
 	}
@@ -42,45 +50,44 @@ func main() {
 	// Enabling the message ordering at the topic level.
 	topic.EnableMessageOrdering = true
 
-	obj := struct {
-		SomeTestID   string `json:"someTestID"`
-		SomeTestName string `json:"someTestName"`
-	}{
-		SomeTestName: "testing",
-	}
-
 	var wg sync.WaitGroup
-	idChan := make(chan string, eventsCount)
-	errChan := make(chan error, eventsCount)
+	idChan := make(chan string, numberOfEvents)
+	errChan := make(chan error, numberOfEvents)
 
 	ctx := context.Background()
 	start := time.Now()
-	sid := start.Nanosecond()
-	msgs := make([]tuple.T2[string, []byte], 0)
+	sid := uint(start.Nanosecond())
+	msgs := make(map[string][]byte, 0)
 
 	log.Println("Preparing the messages ...")
-	for n := 0; n < eventsCount; n++ {
-		id := fmt.Sprint(sid + n)
-		obj.SomeTestID = id
+	obj := data.NewMyData()
+	for n := uint(0); n < numberOfEvents; n++ {
+		obj.ID = sid + n
 
 		data, err := json.Marshal(obj)
 		if err != nil {
 			log.Fatalf("Failed to marshal object: %v", err)
 		}
-		msgs = append(msgs, tuple.New2(id, data))
+		msgs[fmt.Sprintf("%d", obj.ID)] = data
 	}
 
 	log.Println("Starting the publishing ...")
-	for n := 0; n < eventsCount; n++ {
-
-		produce.PublishBytesWithOrderingAsyncRes(ctx, topic, msgs[n].V2, msgs[n].V1, &wg, idChan, errChan)
+	keys := make([]string, 0)
+	for k := range msgs {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		_ = json.Unmarshal(msgs[k], &obj)
+		log.Printf("Publishing msg with Data: %v and OrderingKey: %v", obj, k)
+		produce.PublishBytesWithOrderingAsyncRes(ctx, topic, msgs[k], k, &wg, idChan, errChan)
 		if err != nil {
-			log.Fatalf("Failed to publish msg: %v due to: %v", msgs[n], err)
+			log.Fatalf("Failed to publish msg: %v due to: %v", string(msgs[k]), err)
 		}
 	}
 
 	wg.Wait()
 	duration := time.Since(start)
-	log.Printf("Publishing %d events in order took %v\n", eventsCount, duration)
+	log.Printf("Publishing %d events in order took %v\n", numberOfEvents, duration)
 
 }
