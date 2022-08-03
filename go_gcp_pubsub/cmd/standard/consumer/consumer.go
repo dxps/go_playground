@@ -45,13 +45,13 @@ func main() {
 		}
 	}
 
-	sub, err := consume.CreateSubscriptionWithOrdering(client, topic, subscriptionID)
+	sub, err := consume.InitSubscriptionWithOrdering(client, topic, subscriptionID)
 	if err != nil {
 		_ = client.Close()
 		log.Fatalf("Failed to create subscription with ordering due to: %v", err)
 	}
 	sc, _ := sub.Config(context.Background())
-	log.Printf("Created the subscription. Config: %+v", sc)
+	log.Printf("Subscription has EnableMessageOrdering: %+v", sc.EnableMessageOrdering)
 	log.Println("Ready to receive messages.")
 
 	if err := consume.ReceiveMessages(sub); err != nil {
