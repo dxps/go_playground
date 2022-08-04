@@ -19,7 +19,7 @@ func PublishBytes(topic *pubsub.Topic, data []byte) (msgID string, err error) {
 }
 
 // Publish the `data` bytes as message data, and gets the result in an async fashion.
-// This means, publishing does not block waiting for the server-generated ID of the message.
+// This means, publishing is not blocked waiting for the server-generated ID of the message.
 // The message ID or any potential error are being sent back through the respective channel.
 func PublishBytesAsyncRes(ctx context.Context, topic *pubsub.Topic, data []byte,
 	wg *sync.WaitGroup, idChan chan string, errChan chan error) {
@@ -34,7 +34,6 @@ func PublishBytesAsyncRes(ctx context.Context, topic *pubsub.Topic, data []byte,
 		id, err := res.Get(ctx)
 		idChan <- id
 		errChan <- err
-		// fmt.Printf("Published, got msg id %v\n", id)
 	}(res)
 }
 
@@ -45,7 +44,7 @@ func PublishBytesWithOrdering(topic *pubsub.Topic, data []byte, orderingKey stri
 		Data:        data,
 		OrderingKey: orderingKey,
 	})
-	// Block until the result is returned and a server-generated
+	// Block until the result is returned and a server-generated.
 	// ID is returned for the published message.
 	return res.Get(ctx)
 }
@@ -67,6 +66,5 @@ func PublishBytesWithOrderingAsyncRes(ctx context.Context, topic *pubsub.Topic, 
 		id, err := res.Get(ctx)
 		idChan <- id
 		errChan <- err
-		// fmt.Printf("Published, got msg id %v\n", id)
 	}(res)
 }

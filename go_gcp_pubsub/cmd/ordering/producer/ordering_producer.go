@@ -57,7 +57,7 @@ func main() {
 	ctx := context.Background()
 	start := time.Now()
 	sid := uint(start.Nanosecond())
-	msgs := make(map[string][]byte, 0)
+	msgs := make(map[string][]byte)
 
 	log.Println("Preparing the messages ...")
 	obj := data.NewMyData()
@@ -77,10 +77,11 @@ func main() {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
+	ordKey := "myOrdProd"
 	for _, k := range keys {
 		_ = json.Unmarshal(msgs[k], &obj)
-		log.Printf("Publishing msg with Data: %v and OrderingKey: %v", obj, k)
-		produce.PublishBytesWithOrderingAsyncRes(ctx, topic, msgs[k], k, &wg, idChan, errChan)
+		log.Printf("Publishing data: %v with OrderingKey: %v", obj, ordKey)
+		produce.PublishBytesWithOrderingAsyncRes(ctx, topic, msgs[k], ordKey, &wg, idChan, errChan)
 		if err != nil {
 			log.Fatalf("Failed to publish msg: %v due to: %v", string(msgs[k]), err)
 		}
@@ -89,5 +90,4 @@ func main() {
 	wg.Wait()
 	duration := time.Since(start)
 	log.Printf("Publishing %d events in order took %v\n", numberOfEvents, duration)
-
 }

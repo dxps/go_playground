@@ -68,11 +68,12 @@ func InitSubscriptionWithOrdering(c *pubsub.Client, topic *pubsub.Topic, subID s
 			}
 		}
 	}
-	log.Println("Recreating the subscription ...")
 	// Either not found, or found but not conformant so it got deleted.
+	log.Println("Recreating the subscription ...")
 	return CreateSubscriptionWithOrdering(c, topic, subID)
 }
 
+// InitSubscription just initializes a subcription, without creating it if it doesn't exist.
 func InitSubscription(c *pubsub.Client, topic *pubsub.Topic, subID string) *pubsub.Subscription {
 
 	return c.Subscription(subID)
@@ -91,9 +92,8 @@ func ReceiveMessages(sub *pubsub.Subscription) error {
 		if err != nil {
 			log.Printf("Error on receive: %v", err)
 		} else {
-
 			if currID != obj.ID-1 && currID != 0 {
-				log.Printf("Received objID: %d <-- unordered (curr ID: %v)", obj.ID, currID)
+				log.Printf("Received objID: %d <-- unordered (currID: %v)", obj.ID, currID)
 			} else {
 				log.Printf("Received objID: %d", obj.ID)
 			}
@@ -103,7 +103,7 @@ func ReceiveMessages(sub *pubsub.Subscription) error {
 		received++
 	})
 	if err != nil {
-		return fmt.Errorf("Failed to receive: %v", err)
+		return fmt.Errorf("Receive setup failed: %v", err)
 	}
 	return nil
 }

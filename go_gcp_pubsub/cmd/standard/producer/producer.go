@@ -34,7 +34,7 @@ func main() {
 	       endpoint: '%s'
 	     project ID: '%s'
 	       topic ID: '%s'
-     numberOfEvents: %d
+	 numberOfEvents: %d
 	          delay: %d
 	`, endpoint, projectID, topicID, numberOfEvents, delay)
 
@@ -59,7 +59,7 @@ func main() {
 	var wg sync.WaitGroup
 	idChan := make(chan string, numberOfEvents)
 	errChan := make(chan error, numberOfEvents)
-	msgs := make(map[uint][]byte, numberOfEvents)
+	msgs := make([][]byte, 0)
 
 	ctx := context.Background()
 	start := time.Now()
@@ -69,29 +69,25 @@ func main() {
 	obj := data.NewMyData()
 	for n := uint(0); n < numberOfEvents; n++ {
 		obj.ID = sid + n
-
 		data, err := json.Marshal(obj)
 		if err != nil {
 			log.Fatalf("Failed to marshal object: %v", err)
 		}
-		msgs[obj.ID] = data
+		msgs = append(msgs, data)
 	}
 
-	log.Println("Starting the publishing ...")
-
-	for n := uint(0); n < numberOfEvents; n++ {
-
-		if n > 0 {
+	log.Println("Starting publishing ...")
+	for i, msg := range msgs {
+		if delay > 0 && i > 0 {
 			time.Sleep(time.Duration(delay) * time.Millisecond)
 		}
-		produce.PublishBytesAsyncRes(ctx, topic, msgs[n], &wg, idChan, errChan)
+		produce.PublishBytesAsyncRes(ctx, topic, msg, &wg, idChan, errChan)
 		if err != nil {
-			log.Fatalf("Failed to publish msg: %v due to: %v", msgs[n], err)
+			log.Fatalf("Failed to publish msg: %v due to: %v", msg, err)
 		}
 	}
 
 	wg.Wait()
 	duration := time.Since(start)
-	log.Printf("Publishing %d events took %v\n", numberOfEvents, duration)
-
+	log.Printf("Published %d events in %v.\n", numberOfEvents, duration)
 }
