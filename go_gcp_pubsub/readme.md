@@ -39,9 +39,9 @@ On the production side, things are a little bit different:
 
 Run the producers using:
 1. For the standard producer use:<br/>
-   `go run cmd/standard/producer/producer.go -p {project-id} -t {topic-id} -e {number-of-events|default=10} -d {delay|default=0ms}`
+   `go run cmd/standard/producer/producer.go -p {project-id} -t {topic-id} -n {number-of-messages|default=10} -d {delay|default=0ms}`
 2. For the producer that uses an ordering key use:<br/>
-   `go run cmd/ordering/producer/ordering_producer.go -p {project-id} -t {topic-id} -e {number-of-events|default=10}`
+   `go run cmd/ordering/producer/ordering_producer.go -p {project-id} -t {topic-id} -n {number-of-messages|default=10}`
 
 You should see both sides (production and consumption) showing off their parts.
 
@@ -55,16 +55,18 @@ Currently, the defined endpoints are:
 | `pubsub.googleapis.com:443`              | Global Pub/Sub service endpoint |
 | `europe-west4-pubsub.googleapis.com:443` | Regional (Netherlands) Pub/Sub service endpoint |
 
+Producers and consumer can use different endpoints.
+
 <br/>
 
 ### Stats
 
 The followings represents just some execution snapshots while publishing just 1000 messages.
 
-| number of events (eventCount) | operation & type   | duration     |
-| ----------------------------- | ------------------ | ------------ |
-| 1_000                         | published in order | 252.701501ms |
-| 1_000                         | published standard | 225.168448ms |
+| number of messages | operation & type   | duration     |
+| ------------------ | ------------------ | ------------ |
+| 1_000              | published in order | 252.701501ms |
+| 1_000              | published standard | 225.168448ms |
 
 
 <br/>
