@@ -33,6 +33,7 @@ func main() {
 	http.Handle("/", &app.Handler{
 		Name:        "Hello",
 		Description: "A simple Hello World! example",
+		Title:       "go-app :: Hello World!",
 	})
 
 	log.Println("Listening on http://localhost:8000 ...")
