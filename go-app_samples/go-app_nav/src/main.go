@@ -31,21 +31,24 @@ func (h *About) Render() app.UI {
 
 func main() {
 
-	app.Route("/", func() app.Composer { return &Homepage{} })
 	app.Route("/about", func() app.Composer { return &About{} })
+	app.Route("/", func() app.Composer { return &Homepage{} })
 
-	// Launch the app when in the browser.
 	app.RunWhenOnBrowser()
 
-	// Handle "/" requests.
-	http.Handle("/", &app.Handler{
+	appHandler := &app.Handler{
 		Name:        "Hello",
-		Description: "A simple Hello World! example",
-		Title:       "go-app :: Hello World!",
-	})
+		Description: "A simple go-app based navigation example",
+		Title:       "go-app :: Navigation",
+	}
+
+	s := http.Server{
+		Addr:    ":8000",
+		Handler: appHandler,
+	}
 
 	log.Println("Listening on http://localhost:8000 ...")
-	if err := http.ListenAndServe(":8000", nil); err != nil {
+	if err := s.ListenAndServe(); err != nil {
 		log.Fatal(err)
 	}
 }
