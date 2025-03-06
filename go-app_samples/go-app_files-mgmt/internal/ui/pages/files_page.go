@@ -31,11 +31,16 @@ func (p *FilesPage) Render() app.UI {
 	).Body(
 		&comps.Navbar{},
 		app.Div().
-			Class("flex flex-col min-h-screen justify-center items-center drop-shadow-2xl").
+			Class("flex flex-col min-h-screen justify-center items-center text-gray-800").
 			Body(
-				app.H1().Text("File Upload/Download").Class("text-3xl text-gray-400"),
-				app.Input().ID("csv-upload-button").Type("file").
-					Name("file-import-test.txt").Accept(".txt").OnInput(p.handleCsvUpload),
+				app.H1().Text("File Upload/Download").Class("text-3xl text-gray-400 mb-8"),
+				app.Div().Class("bg-white p-4 rounded-lg drop-shadow-2xl").Body(
+					app.Div().Text("Select a file to upload. After selecting one, it will be automatically read and uploaded."),
+					app.Div().Text("Therefore, open the browser's Developer Tools' console and network to see the result."),
+					app.Input().Class("mt-2 hover:bg-green-100").
+						Type("file").
+						Name("file-import-test.txt").Accept(".txt").OnInput(p.handleCsvUpload),
+				),
 			),
 	)
 }

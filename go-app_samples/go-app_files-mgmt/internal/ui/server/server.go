@@ -11,10 +11,10 @@ import (
 
 func newAppHandler() *app.Handler {
 	return &app.Handler{
-		Name:         "Data Portal",
-		ShortName:    "DP",
-		Description:  "Data Portal solution",
-		Title:        "Data Portal",
+		Name:         "Files Mgmt Experiment",
+		ShortName:    "XP",
+		Description:  "Files Management (upload and download) Experiment",
+		Title:        "Files Mgmt Experiment",
 		LoadingLabel: " ",
 		Icon: app.Icon{
 			Default: "/web/images/favicon.svg",
