@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+	/* 
+       ------------------
+       Defaults for links
+       ------------------
+    */
+	a {
+		@apply text-green-600;
+	}
+	a:hover {
+		@apply bg-gray-100 text-green-700;
+	}
+
+	/* Defaults for input elements. */
+	input {
+		@apply border-[1.4px] border-slate-300 text-base rounded-lg py-2 px-3;
+	}
+	input:read-only {
+		@apply border-slate-200 outline-none;
+	}
+	input[readonly]:focus {
+		@apply border-slate-400 outline-none;
+	}
+	input:focus {
+		@apply border-green-400 outline-none;
+	}
+	/* Hide the arrows on input of type number. */
+	input[type='number']::-webkit-inner-spin-button,
+	input[type='number']::-webkit-outer-spin-button,
+	input[type='number'] {
+		-webkit-appearance: none;
+		/* margin: 0; */
+		-moz-appearance: textfield !important;
+	}
+
+	/* Defaults for textarea elements. */
+	textarea {
+		@apply border-[1.4px] border-slate-300 text-base rounded-lg py-2 px-3;
+	}
+	textarea:read-only {
+		@apply border-slate-200 outline-none;
+	}
+	textarea[readonly]:focus {
+		@apply border-slate-400 outline-none;
+	}
+	textarea:focus {
+		@apply border-green-400 outline-none;
+	}
+
+	/* Defaults for buttons. */
+	button {
+		@apply px-2 py-1;
+	}
+
+	/* Defaults for dropdowns. */
+	select {
+		@apply bg-white rounded-lg outline-none border-[1.4px] border-slate-300 py-2 px-3;
+	}
+	select:disabled {
+		@apply border-slate-200;
+	}
+	select:focus {
+		@apply border-green-300;
+	}
+	/* TODO: This doesn't work. */
+	select[disabled]:focus {
+		@apply border-slate-400;
+	}
+
+	.logo_filter {
+		filter: invert(100%) sepia(40%) saturate(1080%) hue-rotate(177deg)
+			brightness(92%) contrast(86%);
+	}
+}
