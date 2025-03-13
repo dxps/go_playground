@@ -5,7 +5,7 @@ import (
 	"go-app_files-mgmt/internal/shared/config"
 	"go-app_files-mgmt/internal/svc/api"
 	"go-app_files-mgmt/internal/svc/run"
-	"go-app_files-mgmt/internal/ui/server"
+	uiserver "go-app_files-mgmt/internal/svc/servers/ui_server"
 	"log/slog"
 	"os"
 	"path"
@@ -46,7 +46,7 @@ func main() {
 	apiSrv.Start()
 	slog.Info("Web API Server started.", "port", apiSrv.Port)
 
-	uiSrv := server.InitAndStartWebUiServerSide(cfg.Servers.FrontendPort, cfg.Servers.BackendPort)
+	uiSrv := uiserver.InitAndStartWebUiServerSide(cfg.Servers.FrontendPort, cfg.Servers.BackendPort)
 	slog.Info("Web UI Server started.", "addr", uiSrv.Addr)
 
 	///////////////////////

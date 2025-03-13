@@ -1,11 +1,13 @@
+//go:build js
+
 package pages
 
 import (
 	"bytes"
 	"fmt"
 	apiroutes "go-app_files-mgmt/internal/shared/api/api_routes"
-	"go-app_files-mgmt/internal/shared/http/client"
 	"go-app_files-mgmt/internal/ui/comps"
+	"go-app_files-mgmt/internal/ui/infra"
 	"log/slog"
 	"mime/multipart"
 
@@ -14,11 +16,10 @@ import (
 
 type FilesPage struct {
 	app.Compo
-
-	apiClient *client.ApiClient
+	apiClient *infra.ApiClient
 }
 
-func NewFilesPage(apiClient *client.ApiClient) *FilesPage {
+func NewFilesPage(apiClient *infra.ApiClient) *FilesPage {
 	return &FilesPage{
 		apiClient: apiClient,
 	}

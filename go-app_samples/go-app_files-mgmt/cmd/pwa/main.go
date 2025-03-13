@@ -1,9 +1,11 @@
+//go:build js
+
 package main
 
 import (
 	"context"
 	"go-app_files-mgmt/internal/shared/config"
-	"go-app_files-mgmt/internal/ui/server"
+	"go-app_files-mgmt/internal/ui"
 	"log/slog"
 	"os"
 	"path"
@@ -39,5 +41,5 @@ func main() {
 	// PWA server init & startup //
 	///////////////////////////////
 
-	server.InitAndStartWebUiClientSide(cfg.Servers.FrontendPort, cfg.Servers.BackendPort)
+	ui.InitAndStartWebUiClientSide(cfg.Servers.FrontendPort, cfg.Servers.BackendPort)
 }

@@ -8,3 +8,5 @@ github.com/maxence-charriere/go-app/v10 v10.1.0 h1:DFWWOI3+Yoq4i3aSqO0QM/X53mtWd
 github.com/maxence-charriere/go-app/v10 v10.1.0/go.mod h1:FqUW4on4nJewVfBnSkuxQd3fvtK2RdKS/z76OOUDAAY=
 github.com/sethvargo/go-envconfig v1.1.1 h1:JDu8Q9baIzJf47NPkzhIB6aLYL0vQ+pPypoYrejS9QY=
 github.com/sethvargo/go-envconfig v1.1.1/go.mod h1:JLd0KFWQYzyENqnEPWWZ49i4vzZo/6nRidxI8YvGiHw=
+marwan.io/wasm-fetch v0.1.0 h1:0kKeCsry7IQfPmxj78FUWtO6qwXIaQqMmZbzbZz2rkw=
+marwan.io/wasm-fetch v0.1.0/go.mod h1:PlaZmevjPJGIy/BaqMtVjUKvrA8CgrDh+aomnuhmTO8=
