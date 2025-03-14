@@ -3,9 +3,9 @@ package main
 import (
 	"context"
 	"go-app_files-mgmt/internal/shared/config"
-	"go-app_files-mgmt/internal/svc/api"
 	"go-app_files-mgmt/internal/svc/run"
-	uiserver "go-app_files-mgmt/internal/svc/servers/ui_server"
+	"go-app_files-mgmt/internal/svc/servers/apiserver"
+	"go-app_files-mgmt/internal/svc/servers/uiserver"
 	"log/slog"
 	"os"
 	"path"
@@ -42,7 +42,7 @@ func main() {
 	// API & PWA servers init & startup //
 	//////////////////////////////////////
 
-	apiSrv := api.NewApiServer(cfg.Servers.BackendPort)
+	apiSrv := apiserver.NewApiServer(cfg.Servers.BackendPort)
 	apiSrv.Start()
 	slog.Info("Web API Server started.", "port", apiSrv.Port)
 

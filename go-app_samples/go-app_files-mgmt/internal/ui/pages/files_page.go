@@ -5,7 +5,7 @@ package pages
 import (
 	"bytes"
 	"fmt"
-	apiroutes "go-app_files-mgmt/internal/shared/api/api_routes"
+	"go-app_files-mgmt/internal/shared"
 	"go-app_files-mgmt/internal/ui/comps"
 	"go-app_files-mgmt/internal/ui/infra"
 	"log/slog"
@@ -48,10 +48,10 @@ func (p *FilesPage) Render() app.UI {
 
 func (p *FilesPage) handleCsvUpload(ctx app.Context, e app.Event) {
 
-	// TODO: This does not handle multiple files.
+	// TODO: Currently, this does not handle multiple files.
 	file := e.Get("target").Get("files").Index(0)
 
-	// read bytes from uploaded file
+	// Read bytes from uploaded file.
 	fileData, err := readFile(file)
 	if err != nil {
 		slog.Error("Failed to read uploaded file.", "error", err)
@@ -62,18 +62,14 @@ func (p *FilesPage) handleCsvUpload(ctx app.Context, e app.Event) {
 		file.Get("name").String(), "size", file.Get("size").Int(),
 		"type", file.Type().String(), "data", fileData)
 
-	// reset file input for next upload
+	// Reset file input for next upload.
 	e.Get("target").Set("value", "")
 
-	// upload file to server
+	// Upload file to server.
 	p.uploadFile(file.Get("name").String(), fileData)
 
-	// reload the UI
-	// c.displayExercisesOfLesson()
 }
 
-// readFile some JS magic converting uploaded file to a slice of bytes
-// https://github.com/maxence-charriere/go-app/issues/882
 func readFile(file app.Value) (data []byte, err error) {
 
 	done := make(chan bool)
@@ -98,7 +94,6 @@ func readFile(file app.Value) (data []byte, err error) {
 	return data, err
 }
 
-// uploadFile does the upload to the server.
 func (p *FilesPage) uploadFile(fileName string, fileData []byte) {
 
 	buf := &bytes.Buffer{}
@@ -130,14 +125,14 @@ func (p *FilesPage) uploadFile(fileName string, fileData []byte) {
 		app.Log(err)
 		return
 	}
-	// Close the multipart writer before creating the request
+	// Close the multipart writer before creating the request.
 	if err := mpw.Close(); err != nil {
 		slog.Error("Failed to close multipart writer.", "error", err)
 		app.Log(err)
 		return
 	}
-	// Send the request
-	resp, err := p.apiClient.SendFile(apiroutes.Files, mpw.FormDataContentType(), buf.Bytes())
+	// Send the request.
+	resp, err := p.apiClient.SendFile(shared.ApiFilesPath, mpw.FormDataContentType(), buf.Bytes())
 
 	if err != nil {
 		slog.Error("Failed to upload file.", "error", err)
