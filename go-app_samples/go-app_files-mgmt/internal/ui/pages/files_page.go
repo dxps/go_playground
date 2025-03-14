@@ -39,7 +39,7 @@ func (p *FilesPage) Render() app.UI {
 					Body(
 						app.Div().Text("Select a file to upload. After selecting one, it will be automatically read and uploaded."),
 						app.Div().Text("Therefore, open the browser's Developer Tools' console and network to see the result."),
-						app.Input().Class("mt-4 bg-green-50 hover:bg-green-100").
+						app.Input().Class("border-0 mt-4 bg-slate-100 hover:bg-green-100").
 							Type("file").
 							Name("file-import-test.txt").Accept(".txt").OnInput(p.handleTextFileUpload),
 					),
