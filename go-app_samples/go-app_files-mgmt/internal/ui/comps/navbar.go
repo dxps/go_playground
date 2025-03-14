@@ -1,7 +1,7 @@
 package comps
 
 import (
-	"go-app_files-mgmt/internal/ui/uiroutes"
+	"go-app_files-mgmt/internal/common"
 
 	"github.com/maxence-charriere/go-app/v10/pkg/app"
 )
@@ -14,7 +14,7 @@ func (n *Navbar) Render() app.UI {
 	return app.Nav().
 		Class("absolute w-full px-4 py-1 flex justify-between items-center bg-white z-40").
 		Body(
-			app.A().Href(uiroutes.Home).Class("py-1.5 hover:bg-white").Body(
+			app.A().Href(common.HomePath).Class("py-1.5 hover:bg-white").Body(
 				&Logo{},
 			),
 			app.Ul().
@@ -22,12 +22,12 @@ func (n *Navbar) Render() app.UI {
                     transform -translate-y-1/2 -translate-x-1/2
                     sm:flex sm:mx-auto sm:flex sm:items-center sm:w-auto sm:space-x-3 lg:space-x-6`).Body(
 				app.Li().Body(
-					app.A().Href(uiroutes.Home).Text("Home").
+					app.A().Href(common.HomePath).Text("Home").
 						Class("text-sm text-gray-600 py-1 px-4 hover:bg-gray-100 rounded-lg transition duration-200"),
 				),
 				&NavSep{},
 				app.Li().Body(
-					app.A().Href(uiroutes.Files).Text("Files").
+					app.A().Href(common.FilesPath).Text("Files").
 						Class("text-sm text-gray-600 py-1 px-4 hover:bg-gray-100 rounded-lg transition duration-200"),
 				),
 			),

@@ -5,7 +5,7 @@ package pages
 import (
 	"bytes"
 	"fmt"
-	"go-app_files-mgmt/internal/shared"
+	"go-app_files-mgmt/internal/common"
 	"go-app_files-mgmt/internal/ui/comps"
 	"go-app_files-mgmt/internal/ui/infra"
 	"log/slog"
@@ -31,22 +31,23 @@ func (p *FilesPage) Render() app.UI {
 		"flex flex-col min-h-screen bg-gray-100",
 	).Body(
 		&comps.Navbar{},
-		app.Div().
-			Class("flex flex-col min-h-screen justify-center items-center text-gray-800").
+		app.Div().Class("flex flex-col min-h-screen justify-center items-center text-gray-800").
 			Body(
-				app.H1().Text("File Upload/Download").Class("text-3xl text-gray-400 mb-8"),
-				app.Div().Class("bg-white p-4 rounded-lg drop-shadow-2xl").Body(
-					app.Div().Text("Select a file to upload. After selecting one, it will be automatically read and uploaded."),
-					app.Div().Text("Therefore, open the browser's Developer Tools' console and network to see the result."),
-					app.Input().Class("mt-2 hover:bg-green-100").
-						Type("file").
-						Name("file-import-test.txt").Accept(".txt").OnInput(p.handleCsvUpload),
-				),
+				app.H1().Class("text-3xl text-gray-400 mb-8").
+					Text("File Upload/Download"),
+				app.Div().Class("flex flex-col items-center bg-white p-6 rounded-lg drop-shadow-2xl").
+					Body(
+						app.Div().Text("Select a file to upload. After selecting one, it will be automatically read and uploaded."),
+						app.Div().Text("Therefore, open the browser's Developer Tools' console and network to see the result."),
+						app.Input().Class("mt-4 bg-green-50 hover:bg-green-100").
+							Type("file").
+							Name("file-import-test.txt").Accept(".txt").OnInput(p.handleTextFileUpload),
+					),
 			),
 	)
 }
 
-func (p *FilesPage) handleCsvUpload(ctx app.Context, e app.Event) {
+func (p *FilesPage) handleTextFileUpload(ctx app.Context, e app.Event) {
 
 	// TODO: Currently, this does not handle multiple files.
 	file := e.Get("target").Get("files").Index(0)
@@ -132,7 +133,7 @@ func (p *FilesPage) uploadFile(fileName string, fileData []byte) {
 		return
 	}
 	// Send the request.
-	resp, err := p.apiClient.SendFile(shared.ApiFilesPath, mpw.FormDataContentType(), buf.Bytes())
+	resp, err := p.apiClient.SendFile(common.FilesPath, mpw.FormDataContentType(), buf.Bytes())
 
 	if err != nil {
 		slog.Error("Failed to upload file.", "error", err)

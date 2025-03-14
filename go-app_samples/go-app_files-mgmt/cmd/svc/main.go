@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"go-app_files-mgmt/internal/shared/config"
+	"go-app_files-mgmt/internal/common/config"
 	"go-app_files-mgmt/internal/svc/run"
 	"go-app_files-mgmt/internal/svc/servers/apiserver"
 	"go-app_files-mgmt/internal/svc/servers/uiserver"

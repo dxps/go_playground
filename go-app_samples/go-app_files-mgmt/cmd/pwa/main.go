@@ -4,7 +4,7 @@ package main
 
 import (
 	"context"
-	"go-app_files-mgmt/internal/shared/config"
+	"go-app_files-mgmt/internal/common/config"
 	"go-app_files-mgmt/internal/ui"
 	"log/slog"
 	"os"
@@ -37,9 +37,9 @@ func main() {
 	}
 	slog.Debug("Config loaded.")
 
-	///////////////////////////////
-	// PWA server init & startup //
-	///////////////////////////////
+	/////////////////////
+	// PWA server init //
+	/////////////////////
 
-	ui.InitAndStartWebUiClientSide(cfg.Servers.FrontendPort, cfg.Servers.BackendPort)
+	ui.InitPWAClientSide(cfg.Servers.BackendPort)
 }
