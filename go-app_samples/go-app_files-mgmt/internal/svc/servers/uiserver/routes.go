@@ -7,8 +7,6 @@ import (
 	"github.com/maxence-charriere/go-app/v10/pkg/app"
 )
 
-func initAppRoutesServerSide() {
-
+func initAppHomeRoutesServerSide() {
 	app.Route(common.HomePath, func() app.Composer { return &pages.HomePage{} })
-	// app.Route(common.FilesPath, func() app.Composer { return pages.NewFilesPage(apiClient) })
 }

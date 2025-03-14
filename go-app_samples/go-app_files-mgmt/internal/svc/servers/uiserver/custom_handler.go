@@ -2,6 +2,7 @@ package uiserver
 
 import (
 	_ "embed"
+	"go-app_files-mgmt/internal/common"
 	"log/slog"
 	"net/http"
 
@@ -40,7 +41,9 @@ func (ch *customHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// Serve our patched `app.css` file.
 	if r.URL.Path == "/app.css" {
-		ServeAppCss(w)
+		serveAppCss(w)
+	} else if r.URL.Path == common.FilesPath {
+		redirectToHomeAndTellReturn(w, r)
 	} else {
 		ch.Handler.ServeHTTP(w, r)
 	}
@@ -49,11 +52,15 @@ func (ch *customHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 //go:embed app.css
 var appCss string
 
-func ServeAppCss(w http.ResponseWriter) {
+func serveAppCss(w http.ResponseWriter) {
 
 	w.Header().Set("Content-Type", "text/css")
 	if _, err := w.Write([]byte(appCss)); err != nil {
 		slog.Error("Failed to serve 'app.css'.", "error", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
+}
+
+func redirectToHomeAndTellReturn(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, "/?backto="+r.URL.Path, http.StatusFound)
 }
