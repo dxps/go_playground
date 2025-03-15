@@ -1,4 +1,4 @@
-//go:build js
+//go:build js && wasm
 
 package infra
 
@@ -26,11 +26,11 @@ func NewApiClient(endpoint string) *ApiClient {
 }
 
 func (apic *ApiClient) Post(path string, reqBody []byte) (respBody []byte, err error) {
-	return apic.doRequest(context.Background(), "POST", path, "", reqBody)
+	return apic.doRequest(context.Background(), fetch.MethodPost, path, "", reqBody)
 }
 
 func (apic *ApiClient) Get(path string) (respBody []byte, err error) {
-	return apic.doRequest(context.Background(), "GET", path, "", nil)
+	return apic.doRequest(context.Background(), fetch.MethodGet, path, "", nil)
 }
 
 func (c *ApiClient) SendFile(
@@ -38,7 +38,7 @@ func (c *ApiClient) SendFile(
 	contentTypeHeader string,
 	contentBytes []byte,
 ) (respBody []byte, err error) {
-	return c.doRequest(context.Background(), "POST", path, contentTypeHeader, contentBytes)
+	return c.doRequest(context.Background(), fetch.MethodPost, path, contentTypeHeader, contentBytes)
 }
 
 func (c *ApiClient) doRequest(

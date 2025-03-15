@@ -48,10 +48,10 @@ func (s *ApiServer) Stop(ctx context.Context) error {
 func (s *ApiServer) initRouter() {
 
 	cors := cors.Handler(cors.Options{
-		AllowedOrigins: []string{"*"},                                       //
-		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}, //
-		AllowedHeaders: []string{"Accept", "Authorization", "Content-Type"}, //
-		MaxAge:         600,                                                 // Maximum value not ignored by any of the major browsers.
+		AllowedOrigins: []string{"*"},                                                                                    //
+		AllowedMethods: []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions}, //
+		AllowedHeaders: []string{"Accept", "Authorization", "Content-Type"},                                              //
+		MaxAge:         600,                                                                                              // Maximum value not ignored by any of the major browsers.
 	})
 	s.router = chi.NewRouter()
 

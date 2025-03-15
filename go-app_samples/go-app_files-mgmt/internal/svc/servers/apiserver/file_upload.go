@@ -12,8 +12,8 @@ import (
 
 func (s *ApiServer) handleFileUpload(w http.ResponseWriter, r *http.Request) {
 
-	if r.Method != "POST" {
-		log.Fatalln(errors.New("invalid method"))
+	if r.Method != http.MethodPost {
+		log.Fatalln(errors.New("Invalid method. It must be POST."))
 		return
 	}
 
@@ -80,7 +80,7 @@ func (s *ApiServer) handleFileUpload(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	data := make(map[string]interface{})
+	data := make(map[string]any)
 	data["form_field_file"] = filename
 	data["status"] = 200
 	data["file_stats"] = newFile
