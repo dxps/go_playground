@@ -46,7 +46,11 @@ func main() {
 	apiSrv.Start()
 	slog.Info("Web API Server started.", "port", apiSrv.Port)
 
-	uiSrv := uiserver.InitAndStartWebUiServerSide(cfg.Servers.FrontendPort, cfg.Servers.BackendPort)
+	uiSrv, err := uiserver.InitAndStartWebUiServerSide(cfg.Servers.FrontendPort, cfg.Servers.BackendPort)
+	if err != nil {
+		slog.Error("Failed to start Web UI Server.", "error", err)
+		return
+	}
 	slog.Info("Web UI Server started.", "addr", uiSrv.Addr)
 
 	///////////////////////

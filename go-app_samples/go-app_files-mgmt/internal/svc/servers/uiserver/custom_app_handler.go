@@ -27,17 +27,17 @@ func newAppHandler() *app.Handler {
 	}
 }
 
-// customHandler is an internal wrapper around the app.Handler, that overrides
+// customAppHandler is an internal wrapper around the app.Handler, that overrides
 // the ServeHTTP method for returning a custom version of `app.css` file.
-type customHandler struct {
+type customAppHandler struct {
 	app.Handler
 }
 
-func newCustomHandler() *customHandler {
-	return &customHandler{Handler: *newAppHandler()}
+func newCustomAppHandler() *customAppHandler {
+	return &customAppHandler{Handler: *newAppHandler()}
 }
 
-func (ch *customHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (ch *customAppHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// Serve our patched `app.css` file.
 	if r.URL.Path == "/app.css" {

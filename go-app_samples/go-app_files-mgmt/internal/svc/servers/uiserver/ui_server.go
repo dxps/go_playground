@@ -3,20 +3,26 @@ package uiserver
 import (
 	"fmt"
 	"log"
+	"log/slog"
 	"net/http"
+
+	"github.com/klauspost/compress/gzhttp"
+	"github.com/klauspost/compress/gzip"
 )
 
-// InitAndStartWebUiServerSide sets up the UI in the "server-side" (for server-side rendering of the UI).
-func InitAndStartWebUiServerSide(uiPort, apiPort int) *http.Server {
+func InitAndStartWebUiServerSide(uiPort, apiPort int) (*http.Server, error) {
 
 	initAppHomeRoutesServerSide()
-	// TODO: Any non home ("/{some...}") request must be redirected to home ("/")
-	//       with a query param, so that after PWA starts, the HomePage will pick
-	//       up the query param and redirect (back) to the correct page.
 
+	handler := newCustomAppHandler()
+	gzipWrapper, err := gzhttp.NewWrapper(gzhttp.MinSize(1000), gzhttp.CompressionLevel(gzip.BestSpeed))
+	if err != nil {
+		slog.Error("Failed to create gzip wrapper for app handler.", "error", err)
+		return nil, err
+	}
 	uiSrv := http.Server{
 		Addr:    fmt.Sprintf(":%d", uiPort),
-		Handler: newCustomHandler(),
+		Handler: gzipWrapper(handler),
 	}
 
 	go func() {
@@ -25,5 +31,5 @@ func InitAndStartWebUiServerSide(uiPort, apiPort int) *http.Server {
 		}
 	}()
 
-	return &uiSrv
+	return &uiSrv, nil
 }

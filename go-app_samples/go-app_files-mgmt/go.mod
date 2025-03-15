@@ -6,6 +6,7 @@ require (
 	github.com/go-chi/chi/v5 v5.2.1
 	github.com/go-chi/cors v1.2.1
 	github.com/maxence-charriere/go-app/v10 v10.1.0
+	github.com/klauspost/compress v1.18.0
 )
 
 require (
