@@ -22,7 +22,8 @@ type ApiServer struct {
 func NewApiServer(port int) *ApiServer {
 
 	apiSrv := ApiServer{
-		Port: port,
+		Port:          port,
+		uploadedFiles: map[string]common.UploadedFile{},
 	}
 	apiSrv.initRouter()
 	apiSrv.server = &http.Server{

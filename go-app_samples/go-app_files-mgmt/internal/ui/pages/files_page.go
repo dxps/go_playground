@@ -17,13 +17,15 @@ import (
 
 type FilesPage struct {
 	app.Compo
-	apiClient     *infra.ApiClient
-	uploadedFiles []string
+	apiClient                  *infra.ApiClient
+	DownloadableFilenames      []string `json:"files"`
+	selectedFilenameToDownload string
 }
 
 func NewFilesPage(apiClient *infra.ApiClient) *FilesPage {
 	return &FilesPage{
-		apiClient: apiClient,
+		apiClient:             apiClient,
+		DownloadableFilenames: []string{},
 	}
 }
 
@@ -40,25 +42,44 @@ func (p *FilesPage) Render() app.UI {
 				app.Div().
 					Class("flex flex-col items-center bg-white p-6 rounded-lg drop-shadow-2xl min-w-[610px]").
 					Body(
-						app.H1().Class("text-3xl text-gray-400 mb-8").
+						app.H1().
+							Class("text-3xl text-gray-400 mb-8").
 							Text("File Upload"),
-						app.Div().Text("Select a file to upload. After selecting one, it will be automatically read and uploaded."),
-						app.Div().Text("Therefore, open the browser's Developer Tools' console and network to see the result."),
-						app.Input().Class("border-0 mt-4 bg-slate-100 hover:bg-green-100").
+						app.Div().
+							Text("Select a file to upload. After selecting one, it will be automatically read and uploaded."),
+						app.Div().
+							Text("Therefore, open the browser's Developer Tools' console and network to see the result."),
+						app.Input().
+							Class("border-0 mt-4 bg-slate-100 hover:bg-green-100").
 							Type("file").
-							Name("file-import-test.txt").Accept(".txt").OnInput(p.handleTextFileUpload),
+							Name("file-import-test.txt").
+							Accept(".txt").
+							OnInput(func(ctx app.Context, e app.Event) {
+								p.handleTextFileUpload(e)
+								p.getFilesList()
+								ctx.Update()
+							}),
 					),
 				app.Hr().Class("m-8"),
 				app.Div().Class("flex flex-col items-center bg-white p-6 rounded-lg drop-shadow-2xl min-w-[610px]").
 					Body(
 						app.H1().Class("text-3xl text-gray-400 m-8").
 							Text("File Download"),
+						app.Range(p.DownloadableFilenames).Slice(func(i int) app.UI {
+							return app.Div().
+								Class("text-sm text-gray-600 py-1 px-4 hover:bg-green-100 rounded-lg transition duration-200 cursor-pointer").
+								Text(fmt.Sprintf("File %d: %s", i, p.DownloadableFilenames[i])).
+								OnClick(func(ctx app.Context, e app.Event) {
+									p.selectedFilenameToDownload = p.DownloadableFilenames[i]
+									p.handleDownload()
+								})
+						}),
 					),
 			),
 	)
 }
 
-func (p *FilesPage) handleTextFileUpload(ctx app.Context, e app.Event) {
+func (p *FilesPage) handleTextFileUpload(e app.Event) {
 
 	// TODO: Currently, this does not handle multiple files.
 	file := e.Get("target").Get("files").Index(0)
@@ -81,9 +102,6 @@ func (p *FilesPage) handleTextFileUpload(ctx app.Context, e app.Event) {
 
 	// Upload file to server.
 	p.uploadFile(file.Get("name").String(), fileData)
-
-	// Update files list.
-	p.getFilesList()
 }
 
 func readFile(file app.Value) (data []byte, err error) {
@@ -158,9 +176,38 @@ func (p *FilesPage) uploadFile(fileName string, fileData []byte) {
 }
 
 func (p *FilesPage) getFilesList() {
+
 	data, err := p.apiClient.Get(common.FilesPath)
 	if err != nil {
 		slog.Error("Failed to get files list.", "error", err)
 	}
-	json.Unmarshal(data, &p.uploadedFiles)
+	if err := json.Unmarshal(data, &p); err != nil {
+		slog.Error("Failed to unmarshal files list.", "error", err)
+	}
+}
+
+func (p *FilesPage) handleDownload() {
+
+	slog.Debug("Downloading ...", "filename", p.selectedFilenameToDownload)
+	data, err := p.apiClient.Get(fmt.Sprintf("/files/%s", p.selectedFilenameToDownload))
+	if err != nil {
+		slog.Error("Failed to download file.", "error", err)
+		return
+	}
+	uint8Array := app.Window().Get("Uint8Array").New(len(data))
+	nb := app.CopyBytesToJS(uint8Array, data)
+	if nb != len(data) {
+		slog.Error("Unable to copy bytes to JS")
+		return
+	}
+	blobConstructorParam := app.Window().Get("Array").New(uint8Array)
+	blob := app.Window().Get("Blob").New(blobConstructorParam, map[string]interface{}{
+		"type": "mime/type",
+	})
+	url := app.Window().Get("URL").JSValue().Call("createObjectURL", blob)
+	a := app.Window().Get("document").Call("createElement", "a")
+	a.Set("href", url)
+	a.Set("download", p.selectedFilenameToDownload)
+	a.Call("click")
+	app.Window().Get("URL").JSValue().Call("revokeObjectURL", url)
 }
