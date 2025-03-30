@@ -4,6 +4,7 @@ package pages
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"go-app_files-mgmt/internal/common"
 	"go-app_files-mgmt/internal/ui/comps"
@@ -16,7 +17,8 @@ import (
 
 type FilesPage struct {
 	app.Compo
-	apiClient *infra.ApiClient
+	apiClient     *infra.ApiClient
+	uploadedFiles []string
 }
 
 func NewFilesPage(apiClient *infra.ApiClient) *FilesPage {
@@ -25,21 +27,32 @@ func NewFilesPage(apiClient *infra.ApiClient) *FilesPage {
 	}
 }
 
+func (p *FilesPage) OnMount(ctx app.Context) {
+	p.getFilesList()
+}
+
 func (p *FilesPage) Render() app.UI {
 
 	return app.Div().Class("flex flex-col min-h-screen bg-gray-100").Body(
 		&comps.Navbar{},
 		app.Div().Class("flex flex-col min-h-screen justify-center items-center text-gray-800").
 			Body(
-				app.H1().Class("text-3xl text-gray-400 mb-8").
-					Text("File Upload/Download"),
-				app.Div().Class("flex flex-col items-center bg-white p-6 rounded-lg drop-shadow-2xl").
+				app.Div().
+					Class("flex flex-col items-center bg-white p-6 rounded-lg drop-shadow-2xl min-w-[610px]").
 					Body(
+						app.H1().Class("text-3xl text-gray-400 mb-8").
+							Text("File Upload"),
 						app.Div().Text("Select a file to upload. After selecting one, it will be automatically read and uploaded."),
 						app.Div().Text("Therefore, open the browser's Developer Tools' console and network to see the result."),
 						app.Input().Class("border-0 mt-4 bg-slate-100 hover:bg-green-100").
 							Type("file").
 							Name("file-import-test.txt").Accept(".txt").OnInput(p.handleTextFileUpload),
+					),
+				app.Hr().Class("m-8"),
+				app.Div().Class("flex flex-col items-center bg-white p-6 rounded-lg drop-shadow-2xl min-w-[610px]").
+					Body(
+						app.H1().Class("text-3xl text-gray-400 m-8").
+							Text("File Download"),
 					),
 			),
 	)
@@ -57,9 +70,11 @@ func (p *FilesPage) handleTextFileUpload(ctx app.Context, e app.Event) {
 		app.Log(err)
 		return
 	}
-	slog.Debug("Uploaded file", "name",
-		file.Get("name").String(), "size", file.Get("size").Int(),
-		"type", file.Type().String(), "data", fileData)
+	slog.Debug("Uploaded file",
+		"name", file.Get("name").String(),
+		"size", file.Get("size").Int(),
+		"type", file.Type().String(),
+		"data", fileData)
 
 	// Reset file input for next upload.
 	e.Get("target").Set("value", "")
@@ -67,6 +82,8 @@ func (p *FilesPage) handleTextFileUpload(ctx app.Context, e app.Event) {
 	// Upload file to server.
 	p.uploadFile(file.Get("name").String(), fileData)
 
+	// Update files list.
+	p.getFilesList()
 }
 
 func readFile(file app.Value) (data []byte, err error) {
@@ -138,4 +155,12 @@ func (p *FilesPage) uploadFile(fileName string, fileData []byte) {
 		return
 	}
 	slog.Debug("File uploaded.", "response", string(resp))
+}
+
+func (p *FilesPage) getFilesList() {
+	data, err := p.apiClient.Get(common.FilesPath)
+	if err != nil {
+		slog.Error("Failed to get files list.", "error", err)
+	}
+	json.Unmarshal(data, &p.uploadedFiles)
 }

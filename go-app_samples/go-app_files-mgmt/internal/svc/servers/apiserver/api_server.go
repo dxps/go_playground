@@ -13,9 +13,10 @@ import (
 )
 
 type ApiServer struct {
-	router *chi.Mux
-	server *http.Server
-	Port   int
+	router        *chi.Mux
+	server        *http.Server
+	Port          int
+	uploadedFiles map[string]common.UploadedFile
 }
 
 func NewApiServer(port int) *ApiServer {
@@ -61,4 +62,6 @@ func (s *ApiServer) initRouter() {
 
 	// Routes setup.
 	s.router.Post(common.FilesPath, s.handleFileUpload)
+	s.router.Get(common.FilesPath, s.handleFilesList)
+	s.router.Get(common.FilePath, s.handleFileDownload)
 }

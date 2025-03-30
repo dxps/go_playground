@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"go-app_files-mgmt/internal/common"
 	"io"
 	"log"
 	"log/slog"
@@ -26,14 +27,7 @@ func (s *ApiServer) handleFileUpload(w http.ResponseWriter, r *http.Request) {
 
 	filename := r.FormValue("file")
 
-	type uploadedFile struct {
-		Size        int64  `json:"size"`
-		ContentType string `json:"content_type"`
-		Filename    string `json:"filename"`
-		FileContent string `json:"file_content"`
-	}
-
-	var newFile uploadedFile
+	var newFile common.UploadedFile
 	for _, fheaders := range r.MultipartForm.File {
 		for _, headers := range fheaders {
 			file, err := headers.Open()
@@ -76,7 +70,10 @@ func (s *ApiServer) handleFileUpload(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			newFile.FileContent = contentBuf.String()
+			newFile.FileContent = contentBuf.Bytes()
+
+			s.uploadedFiles[filename] = newFile
+			slog.Debug("Stored uploaded file.", "filename", filename)
 		}
 	}
 
