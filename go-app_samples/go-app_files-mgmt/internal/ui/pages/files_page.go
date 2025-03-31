@@ -18,14 +18,14 @@ import (
 type FilesPage struct {
 	app.Compo
 	apiClient                  *infra.ApiClient
-	DownloadableFilenames      []string `json:"files"`
+	DownloadableFilenames      []common.UploadedFile `json:"files"`
 	selectedFilenameToDownload string
 }
 
 func NewFilesPage(apiClient *infra.ApiClient) *FilesPage {
 	return &FilesPage{
 		apiClient:             apiClient,
-		DownloadableFilenames: []string{},
+		DownloadableFilenames: []common.UploadedFile{},
 	}
 }
 
@@ -48,7 +48,7 @@ func (p *FilesPage) Render() app.UI {
 						app.Div().
 							Text("Select a file to upload. After selecting one, it will be automatically read and uploaded."),
 						app.Div().
-							Text("Therefore, open the browser's Developer Tools' console and network to see the result."),
+							Text("The 'File Download' section below shows the list of successfully uploaded files."),
 						app.Input().
 							Class("border-0 mt-4 bg-slate-100 hover:bg-green-100").
 							Type("file").
@@ -63,17 +63,32 @@ func (p *FilesPage) Render() app.UI {
 				app.Hr().Class("m-8"),
 				app.Div().Class("flex flex-col items-center bg-white p-6 rounded-lg drop-shadow-2xl min-w-[610px]").
 					Body(
-						app.H1().Class("text-3xl text-gray-400 m-8").
+						app.H1().Class("text-3xl text-gray-400 mb-8").
 							Text("File Download"),
-						app.Range(p.DownloadableFilenames).Slice(func(i int) app.UI {
-							return app.Div().
-								Class("text-sm text-gray-600 py-1 px-4 hover:bg-green-100 rounded-lg transition duration-200 cursor-pointer").
-								Text(fmt.Sprintf("File %d: %s", i, p.DownloadableFilenames[i])).
-								OnClick(func(ctx app.Context, e app.Event) {
-									p.selectedFilenameToDownload = p.DownloadableFilenames[i]
-									p.handleDownload()
-								})
-						}),
+						app.Div().Text("This section allows you to download any of the files you previously uploaded."),
+						app.Div().Class("flex flex-col w-full text-gray-900 mt-2 px-2").Body(
+							app.Div().Class("font-normal text-gray-400").Body(
+								app.Div().Class("flex").Body(
+									app.Div().Body(app.Text("name")).Class("w-64 text-left px-2 grow"),
+									app.Div().Body(app.Text("size (bytes)")).Class("px-2"),
+								),
+								app.Hr().Class("text-gray-400 pb-1"),
+								app.Range(p.DownloadableFilenames).Slice(func(i int) app.UI {
+									return app.Div().
+										Class("flex text-gray-900 hover:text-green-600 hover:bg-gray-100 rounded-md space-x-2 cursor-pointer").
+										Body(
+											app.Div().Class("flex w-full").Body(
+												app.Div().Body(app.Text(p.DownloadableFilenames[i].FileName)).Class("w-64 px-2 text-left grow"),
+												app.Div().Body(app.Text(p.DownloadableFilenames[i].Size)).Class("px-2 text-gray-500"),
+											),
+										).
+										OnClick(func(ctx app.Context, e app.Event) {
+											p.selectedFilenameToDownload = p.DownloadableFilenames[i].FileName
+											p.handleDownload()
+										})
+								}),
+							),
+						),
 					),
 			),
 	)

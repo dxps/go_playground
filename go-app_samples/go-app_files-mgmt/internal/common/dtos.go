@@ -1,18 +1,18 @@
 package common
 
 type UploadedFile struct {
+	FileName    string `json:"filename"`
+	ContentType string `json:"content_type,omitempty"`
+	Content     []byte `json:"content,omitempty"`
 	Size        int64  `json:"size"`
-	ContentType string `json:"content_type"`
-	Filename    string `json:"filename"`
-	FileContent []byte `json:"file_content"`
 }
 
 type UploadedFilesList struct {
-	Files []string `json:"files"`
+	Files []UploadedFile `json:"files"`
 }
 
 func NewUploadedFilesList() *UploadedFilesList {
 	return &UploadedFilesList{
-		Files: []string{},
+		Files: []UploadedFile{},
 	}
 }

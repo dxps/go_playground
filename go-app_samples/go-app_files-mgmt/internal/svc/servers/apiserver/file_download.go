@@ -15,7 +15,11 @@ func (s *ApiServer) handleFilesList(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	rsp := common.NewUploadedFilesList()
 	for _, file := range s.uploadedFiles {
-		rsp.Files = append(rsp.Files, file.Filename)
+		rsp.Files = append(rsp.Files, common.UploadedFile{
+			FileName:    file.FileName,
+			ContentType: file.ContentType,
+			Size:        file.Size,
+		})
 	}
 	if err := json.NewEncoder(w).Encode(rsp); err != nil {
 		slog.Error("Failed to encode files list.", "error", err)
@@ -39,7 +43,7 @@ func (s *ApiServer) handleFileDownload(w http.ResponseWriter, r *http.Request) {
 	if file, ok := s.uploadedFiles[fileName]; ok {
 		w.Header().Set("Content-Type", file.ContentType)
 		w.Header().Set("Content-Disposition", "attachment; filename="+fileName)
-		if _, err := w.Write(file.FileContent); err != nil {
+		if _, err := w.Write(file.Content); err != nil {
 			slog.Error("Failed to serve file.", "filename", fileName, "error", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}

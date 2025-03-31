@@ -63,14 +63,14 @@ func (s *ApiServer) handleFileUpload(w http.ResponseWriter, r *http.Request) {
 			}
 
 			newFile.Size = fileSize
-			newFile.Filename = headers.Filename
+			newFile.FileName = headers.Filename
 			contentBuf := bytes.NewBuffer(nil)
 
 			if _, err := io.Copy(contentBuf, file); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			newFile.FileContent = contentBuf.Bytes()
+			newFile.Content = contentBuf.Bytes()
 
 			s.uploadedFiles[filename] = newFile
 			slog.Debug("Stored uploaded file.", "filename", filename)
