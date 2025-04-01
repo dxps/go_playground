@@ -12,12 +12,12 @@ type Home struct {
 
 func (h *Home) Render() app.UI {
 
-	items := omap.NewOrderedMap[string, string]()
-	items.Set("1", "First Item")
-	items.Set("2", "Second Item")
-	items.Set("3", "Third Item")
-	items.Set("4", "Fourth Item")
-	items.Set("5", "Fifth Item")
+	items := omap.NewOrderedMap[int, string]()
+	items.Set(1, "First item")
+	items.Set(2, "Second item")
+	items.Set(3, "Third item")
+	items.Set(4, "Fourth item")
+	items.Set(5, "Fifth item")
 
 	return app.Div().
 		Class("flex flex-col min-h-screen bg-gray-100").
