@@ -1,3 +1,6 @@
 
 ## The back-end's binary (executable) file.
 /go-app_dnd_list
+
+## Don't ignore this project's vscode settings.
+!.vscode
