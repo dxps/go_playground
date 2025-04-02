@@ -22,8 +22,8 @@ func (d *HTMLAttrs) Render() app.UI {
 				Attr("id", "div-1-id").
 				Attr("title", "div-1-title").
 				DataSets(map[string]any{
-					"div1-1": "div-1-1 data",
-					"div1-2": "div-1-2 data",
+					"div1-1": "div1-1 data",
+					"div1-2": "div1-2 data",
 				}).
 				Text("Div 1").
 				OnClick(func(ctx app.Context, e app.Event) {
@@ -44,7 +44,6 @@ func (d *HTMLAttrs) Render() app.UI {
 				OnClick(func(ctx app.Context, e app.Event) {
 					slog.Info("On Paragraph 1",
 						"id", ctx.JSSrc().Get("id").String(),
-						"title", ctx.JSSrc().Get("title").String(),
 						"data p1-1", ctx.JSSrc().Get("dataset").Get("p1-1").String(),
 						"data p1-2", ctx.JSSrc().Get("dataset").Get("p1-2").String())
 				}).
@@ -59,7 +58,6 @@ func (d *HTMLAttrs) Render() app.UI {
 				OnClick(func(ctx app.Context, e app.Event) {
 					slog.Info("On Span 1",
 						"id", ctx.JSSrc().Get("id").String(),
-						"title", ctx.JSSrc().Get("title").String(),
 						"data span1-1", ctx.JSSrc().Get("dataset").Get("span1-1").String(),
 						"data span1-2", ctx.JSSrc().Get("dataset").Get("span1-2").String())
 				}).
