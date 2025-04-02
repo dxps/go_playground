@@ -45,40 +45,41 @@ func (d *DndList) Render() app.UI {
 		itemsList = append(itemsList, item{id, val})
 	}
 
-	// slog.Debug("Render", "items", toString(d.items))
-
 	return app.Div().
 		Body(
 			app.Range(itemsList).Slice(func(i int) app.UI {
 				return app.Div().
 					Class("bg-gray-100 rounded-md px-3 py-2 m-4 hover:cursor-grab").
 					Attr("id", itemsList[i].id).
-					Attr("data-value", itemsList[i].value).
+					Attr("title", i).
 					Draggable(true).
 					Text(itemsList[i].value).
 					OnDragStart(func(ctx app.Context, e app.Event) {
 						d.dragging = true
-						d.sIdx = i
+						d.sIdx = atoi(ctx.JSSrc().Get("title").String())
+						id := atoi(ctx.JSSrc().Get("id").String())
+						val, _ := d.items.Get(id)
 						d.sItem = item{
-							id:    itemsList[i].id,
-							value: itemsList[i].value,
+							id:    id,
+							value: val,
 						}
 						slog.Debug("OnDragStart", "sIdx", i, "sItem", d.sItem)
 					}).
 					OnDragOver(func(ctx app.Context, e app.Event) {
 						if i != d.sIdx {
-							d.tIdx = i
+							d.tIdx = atoi(ctx.JSSrc().Get("title").String())
+							id := atoi(ctx.JSSrc().Get("id").String())
+							val, _ := d.items.Get(id)
 							d.tItem = item{
-								id:    itemsList[i].id,
-								value: itemsList[i].value,
+								id:    id,
+								value: val,
 							}
-							// slog.Debug("OnDragOver", "tIdx", i, "tItem", d.tItem)
 						}
 					}).
 					OnDragEnd(func(ctx app.Context, e app.Event) {
 						d.dragging = false
 						if d.sIdx != d.tIdx && d.sIdx != -1 && d.tIdx != -1 {
-							slog.Debug("DnD result", "sIdx", d.sIdx, "tIdx", d.tIdx, "sItem", d.sItem, "tItem", d.tItem)
+							slog.Debug("OnDragEnd", "sIdx", d.sIdx, "tIdx", d.tIdx, "sItem", d.sItem, "tItem", d.tItem)
 							d.reorderItems()
 							d.sIdx = -1
 							d.tIdx = -1
@@ -95,10 +96,6 @@ func (d *DndList) reorderItems() {
 	asc := d.sIdx < d.tIdx
 	i := 0
 	for id, val := range d.items.AllFromFront() {
-		// if (i < d.sIdx && i < d.tIdx) || (i > d.sIdx && i > d.tIdx) || (i != d.sIdx && i != d.tIdx) {
-		// Copy anything outside and within the dragged range.
-		// newItems.Set(id, val)
-		// }
 		if asc {
 			if i == d.tIdx {
 				newItems.Set(d.tItem.id, d.tItem.value)
@@ -107,10 +104,10 @@ func (d *DndList) reorderItems() {
 				newItems.Set(id, val)
 			}
 		} else {
-			if i == d.sIdx {
+			if i == d.tIdx {
 				newItems.Set(d.sItem.id, d.sItem.value)
 				newItems.Set(d.tItem.id, d.tItem.value)
-			} else if id != d.tIdx {
+			} else if i != d.sIdx {
 				newItems.Set(id, val)
 			}
 		}
