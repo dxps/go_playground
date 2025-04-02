@@ -14,10 +14,10 @@ import (
 
 func newAppHandler() *app.Handler {
 	return &app.Handler{
-		Name:         "Files Mgmt Experiment",
+		Name:         "DnD Experiment using go-app",
 		ShortName:    "XP",
-		Description:  "Files Management (upload and download) Experiment",
-		Title:        "Files Mgmt Experiment",
+		Description:  "A Drag-n-Drop implementation using go-app library",
+		Title:        "DnD Xp | go-app",
 		LoadingLabel: "{progress}% loaded",
 		Icon: app.Icon{
 			Default: "/web/images/favicon.svg",
