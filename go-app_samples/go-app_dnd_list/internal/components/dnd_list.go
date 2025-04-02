@@ -49,9 +49,9 @@ func (d *DndList) Render() app.UI {
 		Body(
 			app.Range(itemsList).Slice(func(i int) app.UI {
 				return app.Div().
-					Class("bg-gray-100 rounded-md px-3 py-2 m-4 hover:cursor-grab").
 					Attr("id", itemsList[i].id).
 					Attr("title", i).
+					DataSets(map[string]any{"item-id": itemsList[i].id}).
 					Draggable(true).
 					Text(itemsList[i].value).
 					OnDragStart(func(ctx app.Context, e app.Event) {
@@ -64,6 +64,7 @@ func (d *DndList) Render() app.UI {
 							value: val,
 						}
 						slog.Debug("OnDragStart", "sIdx", i, "sItem", d.sItem)
+						slog.Debug("OnDragStart", "item-id", ctx.JSSrc().Get("dataset").Get("item-id").String())
 					}).
 					OnDragOver(func(ctx app.Context, e app.Event) {
 						if i != d.sIdx {
@@ -85,7 +86,8 @@ func (d *DndList) Render() app.UI {
 							d.tIdx = -1
 							ctx.Update()
 						}
-					})
+					}).
+					Class("bg-gray-100 rounded-md px-3 py-2 m-4 hover:cursor-grab")
 			}),
 		)
 }

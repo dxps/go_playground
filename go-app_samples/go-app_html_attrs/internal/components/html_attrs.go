@@ -21,7 +21,6 @@ func (d *HTMLAttrs) Render() app.UI {
 			app.Div().
 				Attr("id", "div-1-id").
 				Attr("title", "div-1-title").
-				Attr("data-div1-1", "div-1-some-data-1").
 				DataSets(map[string]any{
 					"div1-1": "div-1-1 data",
 					"div1-2": "div-1-2 data",
@@ -37,7 +36,6 @@ func (d *HTMLAttrs) Render() app.UI {
 				Class("bg-gray-100 rounded-md px-4 py-1 my-1 hover:bg-gray-200 hover:cursor-pointer"),
 			app.P().
 				Attr("id", "p-1-id").
-				Attr("title", "p-1-title").
 				DataSets(map[string]any{
 					"p1-1": "p-1-1 data",
 					"p1-2": "p-1-2 data",
@@ -53,7 +51,6 @@ func (d *HTMLAttrs) Render() app.UI {
 				Class("bg-gray-100 rounded-md px-4 py-1 my-1 hover:bg-gray-200 hover:cursor-pointer"),
 			app.Span().
 				Attr("id", "span-1-id").
-				Attr("title", "span-1-title").
 				DataSets(map[string]any{
 					"span1-1": "span-1-1 data",
 					"span1-2": "span-1-2 data",
