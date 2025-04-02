@@ -22,7 +22,7 @@ func (h *Home) Render() app.UI {
 						Body(
 							app.P().
 								Class("text-2xl text-gray-500 font-medium text-center mb-4").
-								Text("Drag and Drop List"),
+								Text("HTML data attributes"),
 							app.Hr().Class("text-gray-200"),
 							app.P().Class("text-gray-500 text-center my-8").
 								Text(`Open the browser's dev tools console and click on any of the HTML elements 
