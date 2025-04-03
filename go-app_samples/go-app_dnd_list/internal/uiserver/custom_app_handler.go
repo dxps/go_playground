@@ -26,7 +26,6 @@ func newAppHandler() *app.Handler {
 		BackgroundColor: "#ffffff",
 		ThemeColor:      "#ffffff",
 		Styles:          []string{"/web/main.css"},
-		InternalURLs:    []string{"https://login.microsoftonline.com/"},
 	}
 }
 
@@ -47,7 +46,7 @@ func NewCustomAppHandler() (*customAppHandler, error) {
 	}
 	return &customAppHandler{
 		Handler:           *newAppHandler(),
-		urlPathRegex:      regexp.MustCompile(`^/data|/login|/about|profile|logout`),
+		urlPathRegex:      regexp.MustCompile(`^/attrs`),
 		compressedAppWASM: cwasm,
 		appWASMSize:       fmt.Sprint(wasmsz),
 	}, nil

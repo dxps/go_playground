@@ -49,27 +49,27 @@ func (d *DndList) Render() app.UI {
 		Body(
 			app.Range(itemsList).Slice(func(i int) app.UI {
 				return app.Div().
-					Attr("id", itemsList[i].id).
-					Attr("title", i).
-					DataSets(map[string]any{"item-id": itemsList[i].id}).
+					DataSets(map[string]any{
+						"itemidx": i,
+						"itemid":  itemsList[i].id,
+					}).
 					Draggable(true).
 					Text(itemsList[i].value).
 					OnDragStart(func(ctx app.Context, e app.Event) {
 						d.dragging = true
-						d.sIdx = atoi(ctx.JSSrc().Get("title").String())
-						id := atoi(ctx.JSSrc().Get("id").String())
+						d.sIdx = atoi(ctx.JSSrc().Get("dataset").Get("itemidx").String())
+						id := atoi(ctx.JSSrc().Get("dataset").Get("itemid").String())
 						val, _ := d.items.Get(id)
 						d.sItem = item{
 							id:    id,
 							value: val,
 						}
 						slog.Debug("OnDragStart", "sIdx", i, "sItem", d.sItem)
-						slog.Debug("OnDragStart", "item-id", ctx.JSSrc().Get("dataset").Get("item-id").String())
 					}).
 					OnDragOver(func(ctx app.Context, e app.Event) {
 						if i != d.sIdx {
-							d.tIdx = atoi(ctx.JSSrc().Get("title").String())
-							id := atoi(ctx.JSSrc().Get("id").String())
+							d.tIdx = atoi(ctx.JSSrc().Get("dataset").Get("itemidx").String())
+							id := atoi(ctx.JSSrc().Get("dataset").Get("itemid").String())
 							val, _ := d.items.Get(id)
 							d.tItem = item{
 								id:    id,
@@ -93,7 +93,7 @@ func (d *DndList) Render() app.UI {
 }
 
 func (d *DndList) reorderItems() {
-
+	//
 	newItems := omap.NewOrderedMap[int, string]()
 	asc := d.sIdx < d.tIdx
 	i := 0
@@ -116,7 +116,7 @@ func (d *DndList) reorderItems() {
 		i++
 	}
 	slog.Debug("reorderItems", "newItems", toString(newItems))
-
+	//
 	d.items = newItems
 }
 
