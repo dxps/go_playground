@@ -24,6 +24,7 @@ func (d *HTMLAttrs) Render() app.UI {
 				DataSets(map[string]any{
 					"div1-1":       "div1-1 data",
 					"div1-2":       "div1-2 data",
+					"div1-some":    "div1-some data",
 					"div1id":       "div1 id",
 					"div1-id":      "div1 id",
 					"div1-idm":     "div1 idm",
@@ -35,10 +36,11 @@ func (d *HTMLAttrs) Render() app.UI {
 						"id", ctx.JSSrc().Get("id").String(),
 						"title", ctx.JSSrc().Get("title").String(),
 						"div1-1", ctx.JSSrc().Get("dataset").Get("div1-1").String(),
+						"div1-some", ctx.JSSrc().Get("dataset").Get("div1Some").String(),
 						"div1id", ctx.JSSrc().Get("dataset").Get("div1id").String(),
-						"div1-id", ctx.JSSrc().Get("dataset").Get("div1-id").String(),
-						"div1-idm", ctx.JSSrc().Get("dataset").Get("div1-idm").String(),
-						"div1-id-some", ctx.JSSrc().Get("dataset").Get("div1-id-some").String())
+						"div1-id", ctx.JSSrc().Get("dataset").Get("div1Id").String(),
+						"div1-idm", ctx.JSSrc().Get("dataset").Get("div1Idm").String(),
+						"div1-id-some", ctx.JSSrc().Get("dataset").Get("div1IdSome").String())
 				}).
 				Class("bg-gray-100 rounded-md px-4 py-1 my-1 hover:bg-gray-200 hover:cursor-pointer"),
 			app.P().
