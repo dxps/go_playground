@@ -26,7 +26,6 @@ func newAppHandler() *app.Handler {
 		BackgroundColor: "#ffffff",
 		ThemeColor:      "#ffffff",
 		Styles:          []string{"/web/main.css"},
-		InternalURLs:    []string{"https://login.microsoftonline.com/"},
 	}
 }
 
