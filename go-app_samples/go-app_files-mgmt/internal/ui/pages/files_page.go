@@ -15,10 +15,17 @@ import (
 	"github.com/maxence-charriere/go-app/v10/pkg/app"
 )
 
+const (
+	uploadBtnCss = "mt-4 bg-gray-200 text-black hover:bg-gray-500 hover:text-white disabled:text-gray-400 disabled:hover:bg-gray-200 py-1 px-4 rounded"
+)
+
 type FilesPage struct {
 	app.Compo
 	apiClient                  *infra.ApiClient
 	DownloadableFilenames      []common.UploadedFile `json:"files"`
+	UploadFileInput            app.Value
+	filenameToUpload           app.Value
+	uploadStarted              bool
 	selectedFilenameToDownload string
 }
 
@@ -35,6 +42,7 @@ func (p *FilesPage) OnMount(ctx app.Context) {
 
 func (p *FilesPage) Render() app.UI {
 
+	disableUploadBtn := p.uploadStarted || p.filenameToUpload == nil
 	return app.Div().Class("flex flex-col min-h-screen bg-gray-100").Body(
 		&comps.Navbar{},
 		app.Div().Class("flex flex-col min-h-screen justify-center items-center text-gray-800").
@@ -43,30 +51,42 @@ func (p *FilesPage) Render() app.UI {
 					Class("flex flex-col items-center bg-white p-6 rounded-lg drop-shadow-2xl min-w-[610px]").
 					Body(
 						app.H1().
-							Class("text-3xl text-gray-400 mb-8").
+							Class("text-xl text-gray-500 mb-8").
 							Text("File Upload"),
-						app.Div().
-							Text("Select a file to upload. After selecting one, it will be automatically read and uploaded."),
-						app.Div().
-							Text("The 'File Download' section below shows the list of successfully uploaded files."),
+						app.Div().Text("Select a file to upload. After the upload is complete, the file will be available"),
+						app.Div().Text("for download in the section below."),
 						app.Input().
-							Class("border-0 mt-4 bg-slate-100 hover:bg-green-100").
+							Class("border-0 mt-6 bg-slate-100 hover:bg-green-100").
 							Type("file").
 							Name("file-import-test.txt").
 							Accept(".txt").
 							OnInput(func(ctx app.Context, e app.Event) {
-								p.handleTextFileUpload(e)
+								p.filenameToUpload = e.Get("target").Get("files").Index(0)
+								slog.Debug("Filename to upload", "filename", p.filenameToUpload.String())
+								p.UploadFileInput = e.Get("target")
+								ctx.Update()
+							}),
+						app.Button().Text("Upload").
+							Disabled(disableUploadBtn).
+							Class(uploadBtnCss).
+							OnClick(func(ctx app.Context, e app.Event) {
+								p.uploadStarted = true
+								p.handleTextFileUpload()
+								p.uploadStarted = false
+								// Reset file input for next upload.
+								p.UploadFileInput.Set("value", "")
+								p.filenameToUpload = nil
 								p.getFilesList()
 								ctx.Update()
 							}),
 					),
-				app.Hr().Class("m-8"),
+				app.Hr().Class("m-6"),
 				app.Div().Class("flex flex-col items-center bg-white p-6 rounded-lg drop-shadow-2xl min-w-[610px]").
 					Body(
-						app.H1().Class("text-3xl text-gray-400 mb-8").
+						app.H1().Class("text-xl text-gray-500 mb-8").
 							Text("File Download"),
-						app.Div().Text("This section allows you to download any of the files you previously uploaded."),
-						app.Div().Class("flex flex-col w-full text-gray-900 mt-2 px-2").Body(
+						app.Div().Text("In this section you can download any of the files you previously uploaded."),
+						app.Div().Class("flex flex-col w-full text-gray-900 mt-6 px-2").Body(
 							app.Div().Class("font-normal text-gray-400").Body(
 								app.Div().Class("flex").Body(
 									app.Div().Body(app.Text("name")).Class("w-64 text-left px-2 grow"),
@@ -94,29 +114,27 @@ func (p *FilesPage) Render() app.UI {
 	)
 }
 
-func (p *FilesPage) handleTextFileUpload(e app.Event) {
+func (p *FilesPage) handleTextFileUpload() {
 
 	// TODO: Currently, this does not handle multiple files.
-	file := e.Get("target").Get("files").Index(0)
+	// file := e.Get("target").Get("files").Index(0)
 
 	// Read bytes from uploaded file.
-	fileData, err := readFile(file)
+	// fileData, err := readFile(file)
+	fileData, err := readFile(p.filenameToUpload)
 	if err != nil {
 		slog.Error("Failed to read uploaded file.", "error", err)
 		app.Log(err)
 		return
 	}
 	slog.Debug("Uploaded file",
-		"name", file.Get("name").String(),
-		"size", file.Get("size").Int(),
-		"type", file.Type().String(),
+		"name", p.filenameToUpload.Get("name").String(),
+		"size", p.filenameToUpload.Get("size").Int(),
+		"type", p.filenameToUpload.Type().String(),
 		"data", fileData)
 
-	// Reset file input for next upload.
-	e.Get("target").Set("value", "")
-
 	// Upload file to server.
-	p.uploadFile(file.Get("name").String(), fileData)
+	p.uploadFile(p.filenameToUpload.Get("name").String(), fileData)
 }
 
 func readFile(file app.Value) (data []byte, err error) {
