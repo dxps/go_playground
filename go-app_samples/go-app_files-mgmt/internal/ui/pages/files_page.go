@@ -16,7 +16,8 @@ import (
 )
 
 const (
-	uploadBtnCss = "mt-4 bg-gray-200 text-black hover:bg-gray-500 hover:text-white disabled:text-gray-400 disabled:hover:bg-gray-200 py-1 px-4 rounded"
+	uploadBtnCss    = "mt-4 bg-gray-200 text-black hover:bg-gray-500 hover:text-white disabled:text-gray-400 disabled:hover:bg-gray-200 py-1 px-4 rounded"
+	downloadItemCss = "flex text-gray-900 hover:text-green-600 hover:bg-gray-100 rounded-md space-x-2 cursor-pointer"
 )
 
 type FilesPage struct {
@@ -56,7 +57,7 @@ func (p *FilesPage) Render() app.UI {
 						app.Div().Text("Select a file to upload. After the upload is complete, the file will be available"),
 						app.Div().Text("for download in the section below."),
 						app.Input().
-							Class("border-0 mt-6 bg-slate-100 hover:bg-green-100").
+							Class("border-0 mt-6 bg-slate-100 hover:bg-green-100 max-w-[400px]").
 							Type("file").
 							Name("file-import-test.txt").
 							Accept(".txt").
@@ -95,11 +96,15 @@ func (p *FilesPage) Render() app.UI {
 								app.Hr().Class("text-gray-400 pb-1"),
 								app.Range(p.DownloadableFilenames).Slice(func(i int) app.UI {
 									return app.Div().
-										Class("flex text-gray-900 hover:text-green-600 hover:bg-gray-100 rounded-md space-x-2 cursor-pointer").
+										Class(downloadItemCss).
 										Body(
 											app.Div().Class("flex w-full").Body(
-												app.Div().Body(app.Text(p.DownloadableFilenames[i].FileName)).Class("w-64 px-2 text-left grow"),
-												app.Div().Body(app.Text(p.DownloadableFilenames[i].Size)).Class("px-2 text-gray-500"),
+												app.Div().
+													Body(app.Text(p.DownloadableFilenames[i].FileName)).
+													Class("w-64 px-2 text-left grow"),
+												app.Div().
+													Body(app.Text(p.DownloadableFilenames[i].Size)).
+													Class("px-2 text-gray-500"),
 											),
 										).
 										OnClick(func(ctx app.Context, e app.Event) {
@@ -116,11 +121,7 @@ func (p *FilesPage) Render() app.UI {
 
 func (p *FilesPage) handleTextFileUpload() {
 
-	// TODO: Currently, this does not handle multiple files.
-	// file := e.Get("target").Get("files").Index(0)
-
-	// Read bytes from uploaded file.
-	// fileData, err := readFile(file)
+	// Read the bytes from uploaded file.
 	fileData, err := readFile(p.filenameToUpload)
 	if err != nil {
 		slog.Error("Failed to read uploaded file.", "error", err)

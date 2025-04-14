@@ -807,6 +807,10 @@ select[disabled]:focus {
   min-width: 610px;
 }
 
+.max-w-\[400px\] {
+  max-width: 400px;
+}
+
 .grow {
   flex-grow: 1;
 }
@@ -849,6 +853,12 @@ select[disabled]:focus {
   --tw-space-x-reverse: 0;
   margin-right: calc(0.5rem * var(--tw-space-x-reverse));
   margin-left: calc(0.5rem * calc(1 - var(--tw-space-x-reverse)));
+}
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .rounded-lg {
